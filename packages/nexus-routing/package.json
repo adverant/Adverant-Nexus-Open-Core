@@ -1,0 +1,49 @@
+{
+  "name": "@adverant/nexus-routing",
+  "version": "1.0.0",
+  "description": "Shared routing package for Nexus MCP Server and API Gateway",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "nexus",
+    "routing",
+    "graphrag",
+    "mageagent",
+    "mcp"
+  ],
+  "author": "Adverant AI",
+  "license": "ISC",
+  "dependencies": {
+    "@adverant/cache": "file:../adverant-cache",
+    "@adverant/config": "file:../adverant-config",
+    "@adverant/database": "file:../adverant-database",
+    "@adverant/errors": "file:../adverant-errors",
+    "@adverant/event-bus": "file:../adverant-event-bus",
+    "@adverant/logger": "file:../adverant-logger",
+    "@adverant/memory-storage": "file:../adverant-memory-storage",
+    "@adverant/resilience": "file:../adverant-resilience",
+    "@adverant/vertex-ai": "file:../adverant-vertex-ai",
+    "axios": "^1.12.2",
+    "dotenv": "^16.6.1",
+    "exceljs": "^4.4.0",
+    "mammoth": "^1.8.0",
+    "marked": "^9.0.0",
+    "pdf-parse": "^1.1.1",
+    "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

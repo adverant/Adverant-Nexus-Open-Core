@@ -1,0 +1,40 @@
+{
+  "name": "@adverant/database",
+  "version": "1.0.0",
+  "description": "Unified database connection management for Nexus stack services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "database",
+    "postgresql",
+    "redis",
+    "neo4j",
+    "qdrant",
+    "connection-pool",
+    "nexus"
+  ],
+  "author": "Adverant AI",
+  "license": "ISC",
+  "dependencies": {
+    "@adverant/logger": "file:../adverant-logger",
+    "@adverant/resilience": "file:../adverant-resilience",
+    "@qdrant/js-client-rest": "^1.9.0",
+    "ioredis": "^5.3.2",
+    "neo4j-driver": "^5.19.0",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/pg": "^8.11.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
