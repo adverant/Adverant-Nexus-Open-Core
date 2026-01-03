@@ -351,7 +351,7 @@ export class QdrantManager {
       const info = await this.client.getCollection(collectionName);
 
       return {
-        vectorsCount: info.vectors_count || 0,
+        vectorsCount: info.indexed_vectors_count || info.points_count || 0,
         pointsCount: info.points_count || 0,
         segments: info.segments_count || 0,
         status: info.status,

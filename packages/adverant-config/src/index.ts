@@ -5,7 +5,6 @@
 
 // Legacy config loader (Phase 0)
 export { ConfigLoader, loadConfig, createConfigLoader } from './config-loader';
-export { createGoogleSecretProvider, GoogleSecretManagerProvider } from './providers/google-secret-manager';
 export { validateConfig } from './validators/schema-validator';
 export {
   PortRegistryManager,

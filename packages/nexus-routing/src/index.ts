@@ -156,6 +156,7 @@ export {
  * - @adverant/resilience: Circuit breaker, retry, timeout, and bulkhead patterns
  * - @adverant/cache: Redis-backed distributed caching for query results
  * - @adverant/database: Unified database connection management (PostgreSQL, Redis, Neo4j, Qdrant)
+ * - @adverant/event-bus: Event-driven architecture with message bus
  *
  * For new code, prefer these implementations over the legacy utilities above.
  * Legacy exports (logger, CircuitBreaker, etc.) are maintained for backward compatibility.
@@ -166,6 +167,4 @@ export * as Config from '@adverant/config';
 export * as Resilience from '@adverant/resilience';
 export * as Cache from '@adverant/cache';
 export * as Database from '@adverant/database';
-export * as MemoryStorage from '@adverant/memory-storage';
 export * as EventBus from '@adverant/event-bus';
-export * as VertexAI from '@adverant/vertex-ai';
