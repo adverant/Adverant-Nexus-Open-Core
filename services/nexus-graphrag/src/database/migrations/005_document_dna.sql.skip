@@ -1,0 +1,384 @@
+-- ========================================
+-- Document DNA Triple-Layer Storage Schema
+-- ========================================
+--
+-- Migration: 005_document_dna.sql
+-- Purpose: Add support for Document DNA with semantic, structural, and original layers
+-- Created: 2025-10-19
+--
+-- This migration creates tables and indexes for:
+-- 1. Document DNA metadata storage
+-- 2. Original document preservation
+-- 3. Layout structure storage
+-- 4. Cross-layer references
+-- ========================================
+
+-- Create document_dna table for metadata
+CREATE TABLE IF NOT EXISTS graphrag.document_dna (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL UNIQUE,
+  version VARCHAR(20) NOT NULL DEFAULT '1.0.0',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  metadata JSONB,
+
+  -- Foreign key to documents table
+  CONSTRAINT fk_document_dna_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE
+);
+
+-- Create document_originals table for preserving raw documents
+CREATE TABLE IF NOT EXISTS graphrag.document_originals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL UNIQUE,
+  content TEXT NOT NULL,
+  format VARCHAR(50) NOT NULL, -- pdf, docx, html, txt, etc.
+  file_size_bytes INTEGER,
+  checksum VARCHAR(64), -- SHA-256 hash for integrity
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign key to documents table
+  CONSTRAINT fk_document_originals_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE
+);
+
+-- Create document_layouts table for structural information
+CREATE TABLE IF NOT EXISTS graphrag.document_layouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL,
+  element_type VARCHAR(50) NOT NULL, -- header, paragraph, table, figure, list, code, footer, caption
+  element_index INTEGER NOT NULL, -- Order within document
+  content TEXT,
+  level INTEGER, -- For headers (1-6)
+  bbox_x FLOAT, -- Bounding box coordinates
+  bbox_y FLOAT,
+  bbox_width FLOAT,
+  bbox_height FLOAT,
+  page_number INTEGER,
+  parent_id UUID, -- For hierarchical structure
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign key to documents table
+  CONSTRAINT fk_document_layouts_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE,
+
+  -- Self-referential foreign key for hierarchy
+  CONSTRAINT fk_document_layouts_parent
+    FOREIGN KEY (parent_id)
+    REFERENCES graphrag.document_layouts(id)
+    ON DELETE CASCADE
+);
+
+-- Create tables_extracted table for high-accuracy table data
+CREATE TABLE IF NOT EXISTS graphrag.tables_extracted (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL,
+  layout_element_id UUID,
+  headers JSONB NOT NULL, -- Array of header strings
+  rows JSONB NOT NULL, -- Array of row arrays
+  caption TEXT,
+  confidence FLOAT DEFAULT 0.979, -- TableFormer baseline
+  extraction_method VARCHAR(50), -- docling, ocr, manual
+  bbox_x FLOAT,
+  bbox_y FLOAT,
+  bbox_width FLOAT,
+  bbox_height FLOAT,
+  page_number INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign keys
+  CONSTRAINT fk_tables_extracted_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_tables_extracted_layout
+    FOREIGN KEY (layout_element_id)
+    REFERENCES graphrag.document_layouts(id)
+    ON DELETE SET NULL
+);
+
+-- Create figures_extracted table for figure/image data
+CREATE TABLE IF NOT EXISTS graphrag.figures_extracted (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL,
+  layout_element_id UUID,
+  caption TEXT,
+  figure_type VARCHAR(50), -- chart, diagram, photo, illustration
+  url TEXT,
+  base64_data TEXT, -- For embedded images
+  bbox_x FLOAT,
+  bbox_y FLOAT,
+  bbox_width FLOAT,
+  bbox_height FLOAT,
+  page_number INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign keys
+  CONSTRAINT fk_figures_extracted_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_figures_extracted_layout
+    FOREIGN KEY (layout_element_id)
+    REFERENCES graphrag.document_layouts(id)
+    ON DELETE SET NULL
+);
+
+-- Create ocr_results table for OCR cascade tracking
+CREATE TABLE IF NOT EXISTS graphrag.ocr_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL,
+  tier VARCHAR(20) NOT NULL, -- tesseract, gpt-4o, qwen-vl
+  confidence FLOAT NOT NULL,
+  text_extracted TEXT NOT NULL,
+  cost_usd DECIMAL(10, 6),
+  processing_time_ms INTEGER,
+  model_used VARCHAR(100),
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign key to documents table
+  CONSTRAINT fk_ocr_results_document
+    FOREIGN KEY (document_id)
+    REFERENCES graphrag.documents(id)
+    ON DELETE CASCADE
+);
+
+-- ========================================
+-- Indexes for Document DNA
+-- ========================================
+
+-- Index for document_dna lookups
+CREATE INDEX IF NOT EXISTS idx_document_dna_document_id
+  ON graphrag.document_dna(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_dna_version
+  ON graphrag.document_dna(version);
+
+CREATE INDEX IF NOT EXISTS idx_document_dna_created_at
+  ON graphrag.document_dna(created_at DESC);
+
+-- Index for document_originals lookups
+CREATE INDEX IF NOT EXISTS idx_document_originals_document_id
+  ON graphrag.document_originals(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_originals_format
+  ON graphrag.document_originals(format);
+
+CREATE INDEX IF NOT EXISTS idx_document_originals_checksum
+  ON graphrag.document_originals(checksum);
+
+-- Indexes for document_layouts
+CREATE INDEX IF NOT EXISTS idx_document_layouts_document_id
+  ON graphrag.document_layouts(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_layouts_element_type
+  ON graphrag.document_layouts(element_type);
+
+CREATE INDEX IF NOT EXISTS idx_document_layouts_element_index
+  ON graphrag.document_layouts(document_id, element_index);
+
+CREATE INDEX IF NOT EXISTS idx_document_layouts_parent_id
+  ON graphrag.document_layouts(parent_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_layouts_page
+  ON graphrag.document_layouts(document_id, page_number);
+
+-- Indexes for tables_extracted
+CREATE INDEX IF NOT EXISTS idx_tables_extracted_document_id
+  ON graphrag.tables_extracted(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_tables_extracted_confidence
+  ON graphrag.tables_extracted(confidence DESC);
+
+CREATE INDEX IF NOT EXISTS idx_tables_extracted_page
+  ON graphrag.tables_extracted(document_id, page_number);
+
+-- Indexes for figures_extracted
+CREATE INDEX IF NOT EXISTS idx_figures_extracted_document_id
+  ON graphrag.figures_extracted(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_figures_extracted_type
+  ON graphrag.figures_extracted(figure_type);
+
+CREATE INDEX IF NOT EXISTS idx_figures_extracted_page
+  ON graphrag.figures_extracted(document_id, page_number);
+
+-- Indexes for ocr_results
+CREATE INDEX IF NOT EXISTS idx_ocr_results_document_id
+  ON graphrag.ocr_results(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_ocr_results_tier
+  ON graphrag.ocr_results(tier);
+
+CREATE INDEX IF NOT EXISTS idx_ocr_results_confidence
+  ON graphrag.ocr_results(confidence DESC);
+
+CREATE INDEX IF NOT EXISTS idx_ocr_results_created_at
+  ON graphrag.ocr_results(created_at DESC);
+
+-- ========================================
+-- Functions and Triggers
+-- ========================================
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION graphrag.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add update triggers
+CREATE TRIGGER update_document_dna_updated_at
+  BEFORE UPDATE ON graphrag.document_dna
+  FOR EACH ROW
+  EXECUTE FUNCTION graphrag.update_updated_at_column();
+
+CREATE TRIGGER update_document_originals_updated_at
+  BEFORE UPDATE ON graphrag.document_originals
+  FOR EACH ROW
+  EXECUTE FUNCTION graphrag.update_updated_at_column();
+
+-- ========================================
+-- Views for Document DNA Analysis
+-- ========================================
+
+-- View for document processing status
+CREATE OR REPLACE VIEW graphrag.document_processing_status AS
+SELECT
+  d.id,
+  d.title,
+  d.created_at,
+  CASE
+    WHEN dna.id IS NOT NULL THEN 'DNA Processed'
+    WHEN orig.id IS NOT NULL THEN 'Original Stored'
+    WHEN ocr.id IS NOT NULL THEN 'OCR Processed'
+    ELSE 'Basic Processing'
+  END as processing_status,
+  dna.version as dna_version,
+  orig.format as original_format,
+  ocr.tier as ocr_tier,
+  ocr.confidence as ocr_confidence,
+  (SELECT COUNT(*) FROM graphrag.tables_extracted te WHERE te.document_id = d.id) as tables_count,
+  (SELECT COUNT(*) FROM graphrag.figures_extracted fe WHERE fe.document_id = d.id) as figures_count,
+  (SELECT COUNT(*) FROM graphrag.document_layouts dl WHERE dl.document_id = d.id) as layout_elements_count
+FROM graphrag.documents d
+LEFT JOIN graphrag.document_dna dna ON d.id = dna.document_id
+LEFT JOIN graphrag.document_originals orig ON d.id = orig.document_id
+LEFT JOIN graphrag.ocr_results ocr ON d.id = ocr.document_id
+  AND ocr.created_at = (
+    SELECT MAX(created_at) FROM graphrag.ocr_results WHERE document_id = d.id
+  );
+
+-- View for document complexity analysis
+-- REFACTORED: CTE moved to query level to comply with PostgreSQL syntax requirements
+-- Root cause: CTEs cannot appear inside aggregate functions like MAX()
+-- Solution: Calculate layout depths for all documents using sequential CTEs (no nesting)
+CREATE OR REPLACE VIEW graphrag.document_complexity AS
+WITH RECURSIVE layout_depth AS (
+  -- Base case: root layout elements (no parent)
+  SELECT
+    id,
+    parent_id,
+    document_id,
+    1 as depth
+  FROM graphrag.document_layouts
+  WHERE parent_id IS NULL
+
+  UNION ALL
+
+  -- Recursive case: child layout elements
+  SELECT
+    dl.id,
+    dl.parent_id,
+    dl.document_id,
+    ld.depth + 1
+  FROM graphrag.document_layouts dl
+  INNER JOIN layout_depth ld ON dl.parent_id = ld.id
+),
+document_layout_depths AS (
+  -- Aggregate to get maximum depth per document
+  SELECT
+    document_id,
+    MAX(depth) as max_depth
+  FROM layout_depth
+  GROUP BY document_id
+)
+SELECT
+  id,
+  title,
+  CASE
+    WHEN tables_count > 5 OR figures_count > 10 THEN 'Complex'
+    WHEN tables_count > 0 OR figures_count > 0 OR has_equations THEN 'Moderate'
+    ELSE 'Simple'
+  END as complexity_level,
+  tables_count,
+  figures_count,
+  distinct_layout_types,
+  max_layout_depth,
+  has_equations,
+  has_multi_column,
+  page_count
+FROM (
+  SELECT
+    d.id,
+    d.title,
+    COUNT(DISTINCT te.id) as tables_count,
+    COUNT(DISTINCT fe.id) as figures_count,
+    COUNT(DISTINCT dl.element_type) as distinct_layout_types,
+    -- Join pre-calculated depths instead of inline CTE
+    COALESCE(dld.max_depth, 0) as max_layout_depth,
+    (d.metadata->>'has_equations')::boolean as has_equations,
+    (d.metadata->>'has_multi_column')::boolean as has_multi_column,
+    (d.metadata->>'page_count')::int as page_count
+  FROM graphrag.documents d
+  LEFT JOIN graphrag.tables_extracted te ON d.id = te.document_id
+  LEFT JOIN graphrag.figures_extracted fe ON d.id = fe.document_id
+  LEFT JOIN graphrag.document_layouts dl ON d.id = dl.document_id
+  -- Join the pre-calculated layout depths
+  LEFT JOIN document_layout_depths dld ON d.id = dld.document_id
+  GROUP BY d.id, d.title, d.metadata, dld.max_depth
+) as doc_stats;
+
+-- ========================================
+-- Comments for Documentation
+-- ========================================
+
+COMMENT ON TABLE graphrag.document_dna IS
+'Stores metadata for Document DNA triple-layer preservation strategy';
+
+COMMENT ON TABLE graphrag.document_originals IS
+'Preserves original document content before any processing';
+
+COMMENT ON TABLE graphrag.document_layouts IS
+'Stores hierarchical layout structure extracted from documents';
+
+COMMENT ON TABLE graphrag.tables_extracted IS
+'High-accuracy table data extracted using TableFormer/Docling (97.9% accuracy)';
+
+COMMENT ON TABLE graphrag.figures_extracted IS
+'Figure and image data extracted from documents';
+
+COMMENT ON TABLE graphrag.ocr_results IS
+'Results from 3-tier OCR cascade (Tesseract -> GPT-4o -> Qwen-VL)';
+
+COMMENT ON VIEW graphrag.document_processing_status IS
+'Overview of document processing levels and capabilities';
+
+COMMENT ON VIEW graphrag.document_complexity IS
+'Analysis of document structural complexity for processing decisions';

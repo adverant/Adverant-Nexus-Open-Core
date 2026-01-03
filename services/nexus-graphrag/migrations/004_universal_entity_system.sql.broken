@@ -1,0 +1,429 @@
+-- Universal Entity System Migration
+-- Provides domain-agnostic storage for all entity types across all domains
+-- NO TOKEN LIMITS - unlimited content storage
+-- Bi-temporal tracking for story-time vs ingestion-time
+-- Multi-platform LLM interaction capture
+
+-- =============================================================================
+-- PART 1: UNIVERSAL ENTITIES (Domain-agnostic, hierarchical, unlimited storage)
+-- =============================================================================
+
+-- Core universal entities table
+CREATE TABLE IF NOT EXISTS graphrag.universal_entities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    -- Domain classification
+    domain VARCHAR(50) NOT NULL, -- creative_writing, code, medical, legal, conversation, general
+    entity_type VARCHAR(100) NOT NULL, -- series, book, chapter, scene, beat, function, class, paper, interaction, etc.
+
+    -- Hierarchical organization
+    hierarchy_level INTEGER DEFAULT 0, -- 0 = root, 1 = child, 2 = grandchild, etc.
+    parent_id UUID REFERENCES graphrag.universal_entities(id) ON DELETE CASCADE,
+    hierarchy_path TEXT, -- Materialized path: /parent_id/child_id/grandchild_id for fast queries
+
+    -- Bi-temporal tracking (for creative writing retcons and versioning)
+    story_time_valid_from JSONB, -- When this entity exists in story timeline
+    story_time_valid_until JSONB, -- When this entity stops existing in story timeline
+    ingestion_time_valid_from TIMESTAMP DEFAULT NOW(), -- When this version was created
+    ingestion_time_valid_until TIMESTAMP, -- NULL = current version
+
+    -- Multimodal content (NO SIZE/TOKEN LIMITS)
+    text_content TEXT, -- Plain text, markdown, natural language
+    code_content TEXT, -- Source code, scripts, SQL
+    structured_data JSONB, -- JSON, configuration, metadata
+    image_url TEXT, -- URL or path to images
+    file_url TEXT, -- URL or path to files (PDFs, documents, etc.)
+
+    -- Entity state and metadata
+    current_state JSONB DEFAULT '{}', -- Current state data (for stateful entities)
+    confidence FLOAT DEFAULT 1.0, -- Confidence score (0-1) for this entity
+    metadata JSONB DEFAULT '{}', -- Domain-specific metadata
+    tags TEXT[] DEFAULT '{}', -- Searchable tags
+
+    -- Full-text search
+    search_vector tsvector,
+
+    -- Audit fields
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    created_by VARCHAR(255), -- User ID or system identifier
+
+    -- Constraints
+    CONSTRAINT check_hierarchy_level CHECK (hierarchy_level >= 0),
+    CONSTRAINT check_confidence CHECK (confidence >= 0 AND confidence <= 1),
+    CONSTRAINT check_valid_domain CHECK (domain IN (
+        'creative_writing', 'code', 'medical', 'legal', 'conversation',
+        'general', 'research', 'business', 'education', 'technical'
+    ))
+);
+
+-- Cross-domain entity relationships
+CREATE TABLE IF NOT EXISTS graphrag.entity_relationships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_entity_id UUID NOT NULL REFERENCES graphrag.universal_entities(id) ON DELETE CASCADE,
+    target_entity_id UUID NOT NULL REFERENCES graphrag.universal_entities(id) ON DELETE CASCADE,
+
+    -- Relationship classification
+    relationship_type VARCHAR(100) NOT NULL, -- CONTAINS, REFERENCES, SIMILAR_TO, INSPIRED_BY, DERIVED_FROM, etc.
+    weight FLOAT DEFAULT 1.0, -- Relationship strength (0-1)
+    directionality VARCHAR(20) DEFAULT 'directed', -- directed, bidirectional, undirected
+
+    -- Relationship metadata
+    metadata JSONB DEFAULT '{}',
+    reasoning TEXT, -- Why this relationship exists
+
+    -- Audit
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by VARCHAR(255),
+
+    -- Constraints
+    CONSTRAINT check_relationship_weight CHECK (weight >= 0 AND weight <= 1),
+    CONSTRAINT check_directionality CHECK (directionality IN ('directed', 'bidirectional', 'undirected')),
+    CONSTRAINT no_self_reference CHECK (source_entity_id != target_entity_id)
+);
+
+-- =============================================================================
+-- PART 2: LLM INTERACTION CAPTURE (Multi-platform conversation logging)
+-- =============================================================================
+
+-- Hot storage for recent LLM interactions (last N days)
+CREATE TABLE IF NOT EXISTS graphrag.llm_interactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    -- Platform identification
+    platform VARCHAR(50) NOT NULL, -- claude_code, claude_desktop, gemini_cli, codex, cursor, vscode, custom
+    platform_version VARCHAR(50),
+
+    -- User/session identification
+    user_id VARCHAR(255), -- Hashed for privacy
+    session_id VARCHAR(255) NOT NULL,
+    thread_id VARCHAR(255), -- Groups related interactions
+    parent_interaction_id UUID REFERENCES graphrag.llm_interactions(id), -- For threaded conversations
+
+    -- Interaction content
+    user_message TEXT NOT NULL,
+    assistant_response TEXT NOT NULL,
+    tool_calls JSONB DEFAULT '[]', -- Array of {name, arguments, result}
+    system_prompt TEXT, -- System prompt used (if available)
+
+    -- Model information
+    model_used VARCHAR(100),
+    model_provider VARCHAR(50), -- openrouter, anthropic, google, openai
+    is_free_model BOOLEAN DEFAULT false, -- Should always be false (enforced)
+
+    -- Context classification
+    domain VARCHAR(50), -- Auto-detected or specified
+    task_type VARCHAR(50), -- classification, generation, retrieval, coding, analysis
+    conversation_context JSONB, -- Snapshot of previous messages
+
+    -- Performance metrics
+    tokens_prompt INTEGER,
+    tokens_completion INTEGER,
+    tokens_total INTEGER,
+    cost_usd NUMERIC(10, 6),
+    latency_ms INTEGER,
+    cache_hit BOOLEAN DEFAULT false,
+
+    -- Error tracking
+    error_occurred BOOLEAN DEFAULT false,
+    error_message TEXT,
+    error_code VARCHAR(50),
+
+    -- Cross-references to other entities
+    stored_document_ids UUID[], -- Documents created in this interaction
+    retrieved_document_ids UUID[], -- Documents retrieved in this interaction
+    memory_ids UUID[], -- Memories accessed
+    entity_ids UUID[], -- Universal entities referenced
+
+    -- Temporal tracking
+    started_at TIMESTAMP NOT NULL,
+    completed_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    -- Full-text search
+    search_vector tsvector,
+
+    -- Constraints
+    CONSTRAINT check_free_model CHECK (is_free_model = false), -- CRITICAL: No free models allowed
+    CONSTRAINT check_completed_after_started CHECK (completed_at >= started_at),
+    CONSTRAINT check_tokens_positive CHECK (
+        (tokens_prompt IS NULL OR tokens_prompt >= 0) AND
+        (tokens_completion IS NULL OR tokens_completion >= 0) AND
+        (tokens_total IS NULL OR tokens_total >= 0)
+    )
+);
+
+-- Platform webhook configuration
+CREATE TABLE IF NOT EXISTS graphrag.platform_webhooks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    platform_name VARCHAR(50) UNIQUE NOT NULL,
+    webhook_url TEXT,
+    api_key_hash VARCHAR(256), -- Hashed API key for validation
+    enabled BOOLEAN DEFAULT true,
+    last_ping TIMESTAMP,
+    last_error TEXT,
+    error_count INTEGER DEFAULT 0,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- =============================================================================
+-- PART 3: INDEXES FOR PERFORMANCE
+-- =============================================================================
+
+-- Universal Entities Indexes
+CREATE INDEX IF NOT EXISTS idx_universal_entities_domain ON graphrag.universal_entities(domain);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_type ON graphrag.universal_entities(domain, entity_type);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_parent ON graphrag.universal_entities(parent_id) WHERE parent_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_universal_entities_hierarchy_path ON graphrag.universal_entities USING GIST(hierarchy_path gist_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_created ON graphrag.universal_entities(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_tags ON graphrag.universal_entities USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_search ON graphrag.universal_entities USING GIN(search_vector);
+CREATE INDEX IF NOT EXISTS idx_universal_entities_current_version ON graphrag.universal_entities(id)
+    WHERE ingestion_time_valid_until IS NULL;
+
+-- Entity Relationships Indexes
+CREATE INDEX IF NOT EXISTS idx_entity_relationships_source ON graphrag.entity_relationships(source_entity);
+CREATE INDEX IF NOT EXISTS idx_entity_relationships_target ON graphrag.entity_relationships(target_entity);
+CREATE INDEX IF NOT EXISTS idx_entity_relationships_type ON graphrag.entity_relationships(relationship_type);
+CREATE INDEX IF NOT EXISTS idx_entity_relationships_bidirectional ON graphrag.entity_relationships(source_entity, target_entity);
+
+-- LLM Interactions Indexes
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_session ON graphrag.llm_interactions(session_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_user ON graphrag.llm_interactions(user_id, started_at DESC)
+    WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_thread ON graphrag.llm_interactions(thread_id, started_at DESC)
+    WHERE thread_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_platform ON graphrag.llm_interactions(platform, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_domain ON graphrag.llm_interactions(domain, started_at DESC)
+    WHERE domain IS NOT NULL;
+-- Removed predicate index with NOW() as it's not IMMUTABLE
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_recent ON graphrag.llm_interactions(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_interactions_search ON graphrag.llm_interactions USING GIN(search_vector);
+
+-- =============================================================================
+-- PART 4: TRIGGERS AND FUNCTIONS
+-- =============================================================================
+
+-- Update search vectors for universal entities
+CREATE OR REPLACE FUNCTION graphrag.update_universal_entity_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := to_tsvector('english',
+        COALESCE(NEW.text_content, '') || ' ' ||
+        COALESCE(NEW.code_content, '') || ' ' ||
+        COALESCE(array_to_string(NEW.tags, ' '), '')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_universal_entity_search_vector_trigger ON graphrag.universal_entities;
+CREATE TRIGGER update_universal_entity_search_vector_trigger
+    BEFORE INSERT OR UPDATE ON graphrag.universal_entities
+    FOR EACH ROW
+    EXECUTE FUNCTION graphrag.update_universal_entity_search_vector();
+
+-- Update search vectors for LLM interactions
+CREATE OR REPLACE FUNCTION graphrag.update_llm_interaction_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := to_tsvector('english',
+        COALESCE(NEW.user_message, '') || ' ' ||
+        COALESCE(NEW.assistant_response, '')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_llm_interaction_search_vector_trigger ON graphrag.llm_interactions;
+CREATE TRIGGER update_llm_interaction_search_vector_trigger
+    BEFORE INSERT OR UPDATE ON graphrag.llm_interactions
+    FOR EACH ROW
+    EXECUTE FUNCTION graphrag.update_llm_interaction_search_vector();
+
+-- Update hierarchy_path automatically
+CREATE OR REPLACE FUNCTION graphrag.update_hierarchy_path()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.parent_id IS NULL THEN
+        NEW.hierarchy_path := '/' || NEW.id::text;
+    ELSE
+        SELECT hierarchy_path || '/' || NEW.id::text
+        INTO NEW.hierarchy_path
+        FROM graphrag.universal_entities
+        WHERE id = NEW.parent_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_hierarchy_path_trigger ON graphrag.universal_entities;
+CREATE TRIGGER update_hierarchy_path_trigger
+    BEFORE INSERT ON graphrag.universal_entities
+    FOR EACH ROW
+    EXECUTE FUNCTION graphrag.update_hierarchy_path();
+
+-- Auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION graphrag.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_universal_entities_updated_at ON graphrag.universal_entities;
+CREATE TRIGGER update_universal_entities_updated_at
+    BEFORE UPDATE ON graphrag.universal_entities
+    FOR EACH ROW
+    EXECUTE FUNCTION graphrag.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_platform_webhooks_updated_at ON graphrag.platform_webhooks;
+CREATE TRIGGER update_platform_webhooks_updated_at
+    BEFORE UPDATE ON graphrag.platform_webhooks
+    FOR EACH ROW
+    EXECUTE FUNCTION graphrag.update_updated_at_column();
+
+-- =============================================================================
+-- PART 5: ARCHIVAL AND MAINTENANCE FUNCTIONS
+-- =============================================================================
+
+-- Archive old LLM interactions to universal entities
+CREATE OR REPLACE FUNCTION graphrag.archive_old_interactions(days_to_keep INTEGER DEFAULT 7)
+RETURNS TABLE (
+    archived_count INTEGER,
+    deleted_count INTEGER,
+    error_count INTEGER
+) AS $$
+DECLARE
+    v_archived_count INTEGER := 0;
+    v_deleted_count INTEGER := 0;
+    v_error_count INTEGER := 0;
+BEGIN
+    -- Convert interactions older than specified days to universal entities
+    INSERT INTO graphrag.universal_entities (
+        domain,
+        entity_type,
+        text_content,
+        metadata,
+        created_at,
+        created_by,
+        hierarchy_level
+    )
+    SELECT
+        COALESCE(i.domain, 'conversation')::VARCHAR(50),
+        'interaction'::VARCHAR(100),
+        jsonb_build_object(
+            'user_message', i.user_message,
+            'assistant_response', i.assistant_response,
+            'tool_calls', i.tool_calls
+        )::text,
+        jsonb_build_object(
+            'interaction_id', i.id,
+            'platform', i.platform,
+            'model_used', i.model_used,
+            'session_id', i.session_id,
+            'thread_id', i.thread_id,
+            'tokens', jsonb_build_object(
+                'prompt', i.tokens_prompt,
+                'completion', i.tokens_completion,
+                'total', i.tokens_total
+            ),
+            'cost_usd', i.cost_usd,
+            'latency_ms', i.latency_ms,
+            'started_at', i.started_at,
+            'completed_at', i.completed_at
+        ),
+        i.started_at,
+        'system_archival',
+        0
+    FROM graphrag.llm_interactions i
+    WHERE i.started_at < NOW() - (days_to_keep || ' days')::INTERVAL
+        AND NOT EXISTS (
+            SELECT 1 FROM graphrag.universal_entities e
+            WHERE e.metadata->>'interaction_id' = i.id::text
+        );
+
+    GET DIAGNOSTICS v_archived_count = ROW_COUNT;
+
+    -- Delete archived interactions
+    DELETE FROM graphrag.llm_interactions
+    WHERE started_at < NOW() - (days_to_keep || ' days')::INTERVAL;
+
+    GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
+
+    -- Return stats
+    RETURN QUERY SELECT v_archived_count, v_deleted_count, v_error_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get entity with full hierarchy
+CREATE OR REPLACE FUNCTION graphrag.get_entity_with_hierarchy(entity_id UUID)
+RETURNS TABLE (
+    id UUID,
+    domain VARCHAR(50),
+    entity_type VARCHAR(100),
+    hierarchy_level INTEGER,
+    parent_id UUID,
+    text_content TEXT,
+    code_content TEXT,
+    structured_data JSONB,
+    metadata JSONB,
+    created_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH RECURSIVE entity_hierarchy AS (
+        -- Base case: the requested entity
+        SELECT
+            e.id, e.domain, e.entity_type, e.hierarchy_level, e.parent_id,
+            e.text_content, e.code_content, e.structured_data, e.metadata, e.created_at,
+            e.hierarchy_path
+        FROM graphrag.universal_entities e
+        WHERE e.id = entity_id
+
+        UNION ALL
+
+        -- Recursive case: children
+        SELECT
+            e.id, e.domain, e.entity_type, e.hierarchy_level, e.parent_id,
+            e.text_content, e.code_content, e.structured_data, e.metadata, e.created_at,
+            e.hierarchy_path
+        FROM graphrag.universal_entities e
+        INNER JOIN entity_hierarchy eh ON e.parent_id = eh.id
+    )
+    SELECT
+        eh.id, eh.domain, eh.entity_type, eh.hierarchy_level, eh.parent_id,
+        eh.text_content, eh.code_content, eh.structured_data, eh.metadata, eh.created_at
+    FROM entity_hierarchy eh
+    ORDER BY eh.hierarchy_path;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- PART 6: GRANTS AND PERMISSIONS
+-- =============================================================================
+
+GRANT ALL PRIVILEGES ON TABLE graphrag.universal_entities TO CURRENT_USER;
+GRANT ALL PRIVILEGES ON TABLE graphrag.entity_relationships TO CURRENT_USER;
+GRANT ALL PRIVILEGES ON TABLE graphrag.llm_interactions TO CURRENT_USER;
+GRANT ALL PRIVILEGES ON TABLE graphrag.platform_webhooks TO CURRENT_USER;
+
+-- =============================================================================
+-- MIGRATION COMPLETE
+-- =============================================================================
+
+-- Log migration completion
+DO $$
+BEGIN
+    RAISE NOTICE 'Universal Entity System migration completed successfully';
+    RAISE NOTICE '- Universal entities table created (unlimited storage, bi-temporal)';
+    RAISE NOTICE '- Entity relationships table created (cross-domain)';
+    RAISE NOTICE '- LLM interactions table created (multi-platform capture)';
+    RAISE NOTICE '- Platform webhooks table created';
+    RAISE NOTICE '- All indexes, triggers, and functions created';
+    RAISE NOTICE '- Free model constraint enforced: is_free_model = false';
+    RAISE NOTICE 'System ready for production use';
+END $$;

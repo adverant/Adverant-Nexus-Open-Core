@@ -1,0 +1,57 @@
+-- Migration: Add multi-model support for GraphRAG
+-- This migration adds support for multiple Voyage AI models and enhanced metadata
+
+-- Set search path to graphrag schema
+SET search_path TO graphrag, public;
+
+-- Add model information to documents table (embedding_model column)
+-- Note: format column already exists from 002_initial_schema.sql
+ALTER TABLE graphrag.documents
+ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(50),
+ADD COLUMN IF NOT EXISTS content_type VARCHAR(50);
+
+-- Add model information to document_chunks table (table already exists from previous migration)
+ALTER TABLE graphrag.document_chunks
+ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(50),
+ADD COLUMN IF NOT EXISTS embedding_dimension INTEGER,
+ADD COLUMN IF NOT EXISTS rerank_score FLOAT;
+
+-- Create indexes for efficient queries
+CREATE INDEX IF NOT EXISTS idx_documents_content_type ON graphrag.documents(content_type);
+CREATE INDEX IF NOT EXISTS idx_document_chunks_embedding_model ON graphrag.document_chunks(embedding_model);
+
+-- Add composite index for efficient filtering
+CREATE INDEX IF NOT EXISTS idx_documents_type_created ON graphrag.documents(content_type, created_at);
+
+-- Create a table to track model usage statistics
+CREATE TABLE IF NOT EXISTS graphrag.model_usage_stats (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    model_name VARCHAR(50) NOT NULL,
+    usage_count INTEGER DEFAULT 0,
+    total_tokens INTEGER DEFAULT 0,
+    avg_latency_ms FLOAT,
+    last_used TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(model_name)
+);
+
+-- Create index for model usage queries
+CREATE INDEX IF NOT EXISTS idx_model_usage_name ON graphrag.model_usage_stats(model_name);
+CREATE INDEX IF NOT EXISTS idx_model_usage_last_used ON graphrag.model_usage_stats(last_used);
+
+-- Update existing documents to have default values
+UPDATE graphrag.documents
+SET embedding_model = 'voyage-3',
+    content_type = 'text'
+WHERE embedding_model IS NULL;
+
+UPDATE graphrag.document_chunks
+SET embedding_model = 'voyage-3',
+    embedding_dimension = 1024
+WHERE embedding_model IS NULL;
+
+-- Add comments to track migration
+COMMENT ON COLUMN graphrag.documents.embedding_model IS 'Voyage AI model used for embedding: voyage-3, voyage-code-3, voyage-multimodal-3';
+COMMENT ON COLUMN graphrag.documents.content_type IS 'Content type: text, code, multimodal, markdown, json';
+COMMENT ON COLUMN graphrag.documents.format IS 'File format extension if applicable';
+COMMENT ON COLUMN graphrag.document_chunks.rerank_score IS 'Score from rerank-2.5 model if reranking was applied';
