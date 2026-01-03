@@ -17,7 +17,7 @@
 - **Inconsistent interpretation**: Different lawyers extract different obligations from same contract
 - **Version chaos**: 15-20% of contracts reference outdated terms or superseded agreements
 
-**Example**: A Fortune 500 company's legal department reviews 5,000 contracts annually. At $400/hour average lawyer cost and 3 hours per contract, that's **$6 million/year** in contract review costs alone.
+**Example**: A large enterprise legal department reviewing 5,000 contracts annually at $400/hour average lawyer cost and 3 hours per contract faces **$6 million/year** in contract review costs alone.
 
 **Business Impact**:
 - Lost deals due to slow turnaround
@@ -695,21 +695,21 @@ curl -X POST http://localhost:3000/api/contracts/compare \
 
 **ROI**: **$14.7M - $28,776 = $14,671,224 (51,000% ROI)**
 
-### Case Study: Fortune 500 Financial Services Company
+### Hypothetical Example: Large Financial Services Legal Department
 
 **Challenge**: Legal team reviewing 8,000 vendor contracts annually, each taking 4 hours average.
 
-**Solution**: Implemented Nexus with NexusDoc plugin for legal clause extraction.
+**Solution**: Nexus with NexusDoc plugin for legal clause extraction.
 
-**Results After 6 Months**:
+**Projected Results (6 Months)**:
 - Contract review time: **4 hours → 30 minutes** (87.5% reduction)
-- Annual cost savings: **$12.8 million** (lawyer time)
-- Risk identification: **62% → 96%** accuracy
-- Missed renewal deadlines: **45/year → 0** (auto-alerts)
+- Projected annual cost savings: **$12.8 million** (lawyer time)
+- Risk identification: **62% → 96%** accuracy improvement
+- Missed renewal deadlines: **45/year → near-zero** (auto-alerts)
 - Contract disputes: **120/year → 35/year** (71% reduction)
 
-**Testimonial**:
-> "Nexus transformed our contract management from a bottleneck into a competitive advantage. We now review contracts in minutes instead of hours, and our risk team has visibility they never had before. The triple-layer architecture means we can search by semantic meaning, track relationships between master agreements and SOWs, and get instant alerts on expiring contracts." — **General Counsel, Fortune 500 Financial Services**
+**Value Proposition**:
+> The triple-layer architecture enables semantic search across all contracts, relationship tracking between master agreements and SOWs, and automated alerts on expiring contracts—transforming contract management from a bottleneck into a strategic advantage.
 
 ---
 
@@ -951,7 +951,7 @@ nexus plugin install nexus-translate
 
 ### **Dedicated Support**
 - 24/7 support via Slack/Teams
-- 4-hour response SLA
+- Priority response (4-hour target)
 - Custom feature development
 - Architecture review and optimization
 

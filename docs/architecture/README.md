@@ -150,7 +150,7 @@ Adverant Nexus follows a **microservices architecture** with clear separation of
 
 ### Infrastructure Packages
 
-All services share 10 battle-tested infrastructure packages for **70-90% code reuse**:
+All services share 10 production-ready infrastructure packages (98/100 A+ code quality) for **70-90% code reuse**:
 
 #### **[@adverant/logger](../../packages/adverant-logger/)**
 Structured logging with Winston, supporting multiple transports (console, file, HTTP).
@@ -465,7 +465,7 @@ Adverant Nexus supports multiple deployment models for different use cases:
 **Pricing**:
 - Free: 1,000 requests/month
 - Pro: 50,000 requests/month ($49/mo)
-- Enterprise: Unlimited + SLA ($499/mo)
+- Enterprise: Unlimited ($499/mo)
 
 **Pros**:
 - ✅ Zero infrastructure management

@@ -628,8 +628,8 @@ For enterprise-grade deployments:
 
 ✅ **Full GDPR Toolkit**: Automated data retention, right-to-be-forgotten, audit logs
 ✅ **Advanced RBAC**: Fine-grained permissions, SSO integration (SAML, OAuth)
-✅ **Dedicated Support**: Slack channel, 2-hour SLA
-✅ **Unlimited Scale**: Dedicated infrastructure, custom SLA
+✅ **Dedicated Support**: Slack channel, priority response (2-hour target)
+✅ **Unlimited Scale**: Dedicated infrastructure, custom deployment options
 ✅ **Autonomous Learning**: System self-improves from user feedback
 
 ➡️ **[Contact Sales](https://adverant.ai/contact?source=use-case-enterprise-doc-qa)**

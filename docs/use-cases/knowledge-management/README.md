@@ -343,7 +343,7 @@ docker-compose -f docker/docker-compose.nexus.yml up -d
 - **Provider**: [dashboard.adverant.ai](https://dashboard.adverant.ai)
 - **Free**: 1,000 requests/month
 - **Pro**: 50,000 requests/month ($49/mo)
-- **Enterprise**: Unlimited + SLA ($499/mo)
+- **Enterprise**: Unlimited ($499/mo)
 
 ---
 
@@ -430,7 +430,7 @@ curl -X POST http://localhost:8090/graphrag/api/retrieve/enhanced \
 - **Smart Model Router**: 30-50% AI cost reduction
 - **Advanced GDPR/HIPAA**: Full compliance toolkit
 - **Multi-Site Synchronization**: Real-time sync across locations
-- **Dedicated Support**: 24/7 via Slack/Teams, 4-hour SLA
+- **Dedicated Support**: 24/7 via Slack/Teams, priority response (4-hour target)
 
 **[Request Enterprise Demo →](https://adverant.ai/enterprise)**
 

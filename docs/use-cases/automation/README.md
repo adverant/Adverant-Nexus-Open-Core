@@ -18,7 +18,7 @@ Orchestrate complex multi-step workflows with Adverant Nexus's async task patter
 **ROI**: 85,000% | **Metrics**: 95% automation rate, zero manual intervention
 
 ### 2. Data Pipeline Automation
-**ROI**: 62,000% | **Metrics**: Real-time processing, 99.9% reliability
+**ROI**: 62,000% | **Metrics**: Real-time processing, production-grade reliability
 
 ### 3. Report Generation & Distribution
 **ROI**: 48,000% | **Metrics**: 100% automated, scheduled delivery

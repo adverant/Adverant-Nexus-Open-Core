@@ -757,7 +757,7 @@ nexus plugin install nexus-sentiment
 
 ### **Dedicated Support**
 - 24/7 support via Slack/Teams
-- 4-hour response SLA
+- Priority response (4-hour target)
 - Custom integrations (Salesforce Service Cloud, etc.)
 
 **[Request Enterprise Demo →](https://adverant.ai/enterprise)**

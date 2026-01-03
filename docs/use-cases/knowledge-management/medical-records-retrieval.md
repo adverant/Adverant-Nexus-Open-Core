@@ -828,7 +828,7 @@ nexus plugin install nexus-fhir
 
 ### **Dedicated Support**
 - 24/7 HIPAA compliance helpline
-- 2-hour response SLA for security incidents
+- Priority response for security incidents (2-hour response target)
 - Annual compliance audit assistance
 
 **[Request Enterprise Demo →](https://adverant.ai/enterprise)**

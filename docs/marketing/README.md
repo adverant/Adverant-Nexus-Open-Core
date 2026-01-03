@@ -14,7 +14,7 @@ Brand voice guidelines, messaging hierarchy, and conversion funnels for Adverant
 - Use active voice (>90% of sentences)
 - Lead with benefits before features
 - Be specific with numbers ("86% cost reduction" not "significant savings")
-- Show confidence ("proven", "production-grade", "battle-tested")
+- Show confidence ("proven", "production-grade", "production-ready")
 - Use data to back claims
 
 **DON'T**:
@@ -50,7 +50,7 @@ Brand voice guidelines, messaging hierarchy, and conversion funnels for Adverant
 
 **3. Production Readiness**:
 - "Production-grade from day 1: OpenTelemetry observability, circuit breakers, horizontal scaling"
-- "Battle-tested patterns, not experimental frameworks"
+- "Production-ready patterns (98/100 A+ code quality), not experimental frameworks"
 - "Runs on Kubernetes (K3s, EKS, GKE, AKS) with Istio service mesh"
 
 ---
@@ -144,17 +144,17 @@ Brand voice guidelines, messaging hierarchy, and conversion funnels for Adverant
 **Upgrade Triggers**:
 1. GDPR compliance: "Full EU regulatory compliance (Enterprise)"
 2. Autonomous loops: "Self-improving AI without human intervention"
-3. SLA needed: "99.9% uptime guarantee"
-4. High volume: "Unlimited requests + dedicated infrastructure"
+3. High volume: "Unlimited requests + dedicated infrastructure"
+4. Custom deployment: "On-premise or dedicated cloud options"
 
 **Landing Page Value Prop**:
-> "Enterprise AI infrastructure that scales. Unlimited requests, 99.9% SLA, autonomous learning loops, dedicated support, custom deployment options."
+> "Enterprise AI infrastructure that scales. Unlimited requests, autonomous learning loops, dedicated support, custom deployment options."
 
 **Proof Points**:
-- Fortune 500 deployments
-- SOC 2, ISO 27001, GDPR certified
+- SOC 2, ISO 27001, GDPR compliance ready
 - White-glove onboarding
 - Custom integrations
+- Dedicated support channels
 
 ---
 
@@ -170,8 +170,8 @@ Brand voice guidelines, messaging hierarchy, and conversion funnels for Adverant
 **Proof**:
 - 1,316 TypeScript files you don't have to write
 - 50+ microservices already built
-- Battle-tested resilience patterns
-- Production monitoring built-in
+- Production-ready resilience patterns (98/100 A+ code quality)
+- OpenTelemetry monitoring built-in
 
 ---
 
@@ -240,14 +240,14 @@ Brand voice guidelines, messaging hierarchy, and conversion funnels for Adverant
 ### "How do I know it works in production?"
 
 **Response**:
-> "Nexus powers production AI platforms processing millions of requests/month.
+> "Nexus is production-ready with enterprise-grade features.
 >
 > Proof:
 > - 98/100 A+ code quality rating
 > - OpenTelemetry observability built-in
 > - Circuit breakers and retry logic
 > - Horizontal scaling on Kubernetes
-> - 99.9% uptime SLA (Enterprise)
+> - 4-layer GDPR compliance architecture
 >
 > Plus: 50+ production use cases documented with real metrics."
 
