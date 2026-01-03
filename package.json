@@ -1,0 +1,46 @@
+{
+  "name": "adverant-nexus-open-core",
+  "version": "1.0.0",
+  "description": "Adverant Nexus Open Source Core - Multi-agent orchestration and GraphRAG knowledge management",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build --workspace=packages/*",
+    "build:services": "npm run build --workspace=services/*",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "security-scan": "bash scripts/security-scan.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adverant/Adverant-Nexus-Open-Core.git"
+  },
+  "keywords": [
+    "multi-agent",
+    "graphrag",
+    "knowledge-management",
+    "llm-orchestration",
+    "rag",
+    "vector-search",
+    "episodic-memory",
+    "typescript"
+  ],
+  "author": "Adverant, Inc.",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.0"
+  }
+}
