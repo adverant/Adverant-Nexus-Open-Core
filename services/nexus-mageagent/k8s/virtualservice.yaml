@@ -1,0 +1,54 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: mageagent
+  namespace: mage-agent
+spec:
+  hosts:
+  - graphrag.adverant.ai
+  gateways:
+  - istio-system/main-gateway
+  http:
+  # WebSocket route
+  - match:
+    - uri:
+        prefix: /mageagent/ws
+    - headers:
+        upgrade:
+          exact: websocket
+    route:
+    - destination:
+        host: mageagent.mage-agent.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 0s  # No timeout for WebSocket connections
+    websocketUpgrade: true
+  # API routes
+  - match:
+    - uri:
+        prefix: /mageagent/api
+    route:
+    - destination:
+        host: mageagent.mage-agent.svc.cluster.local
+        port:
+          number: 80
+    rewrite:
+      uri: /api
+    timeout: 600s  # 10 minutes for long-running operations
+    retryPolicy:
+      attempts: 3
+      perTryTimeout: 300s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+      retryRemoteLocalities: true
+  # Health check route
+  - match:
+    - uri:
+        exact: /mageagent/health
+    route:
+    - destination:
+        host: mageagent.mage-agent.svc.cluster.local
+        port:
+          number: 80
+    rewrite:
+      uri: /api/health
+    timeout: 10s
