@@ -456,29 +456,7 @@ Adverant Nexus supports multiple deployment models for different use cases:
 
 **Reference**: [k8s/base/](../../k8s/base/)
 
-### 3. **Edge Deployment (K3s)**
-
-**Use Case**: IoT, drones, autonomous vehicles, edge compute
-
-**Resources**: 2GB+ RAM, 2 CPU cores (ARM64 or AMD64)
-
-**Components**:
-- GraphRAG Lite (SQLite + FAISS)
-- MageAgent Lite (single agent)
-- K3s (lightweight Kubernetes)
-
-**Pros**:
-- ✅ Runs on Raspberry Pi, Jetson
-- ✅ Offline-first
-- ✅ Low resource usage
-
-**Cons**:
-- ❌ Limited scalability
-- ❌ Reduced feature set
-
-**Reference**: [docs/edge-deployment.md](edge-deployment.md)
-
-### 4. **Managed Cloud (SaaS)**
+### 3. **Managed Cloud (SaaS)**
 
 **Use Case**: Skip self-hosting, fastest time to value
 
