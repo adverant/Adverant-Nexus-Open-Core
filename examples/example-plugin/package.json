@@ -1,0 +1,44 @@
+{
+  "name": "@nexus-plugin/example",
+  "version": "1.0.0",
+  "description": "Example plugin for Adverant Nexus Open Core - demonstrates plugin capabilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "nexus-plugin",
+    "nexus",
+    "ai",
+    "graphrag",
+    "example"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/example-plugin.git"
+  },
+  "nexusApiVersion": "1.0",
+  "peerDependencies": {
+    "@adverant/nexus-plugin-system": "^1.0.0"
+  },
+  "devDependencies": {
+    "@adverant/nexus-plugin-system": "^1.0.0",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

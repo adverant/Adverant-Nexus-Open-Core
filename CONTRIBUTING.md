@@ -2,6 +2,26 @@
 
 Thank you for your interest in contributing to Adverant Nexus! This document provides guidelines for contributing to the open-source core.
 
+## 📋 Table of Contents
+
+- [Code of Conduct](#-code-of-conduct)
+- [Project Overview](#-project-overview)
+- [Getting Started](#-getting-started)
+- [Development Workflow](#-development-workflow)
+- [Plugin Development](#-plugin-development)
+- [Code Quality Standards](#-code-quality-standards)
+- [Issue and PR Templates](#-issue-and-pr-templates)
+- [Community Guidelines](#-community-guidelines)
+- [Recognition](#-recognition)
+
+## 📜 Code of Conduct
+
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to community@adverant.ai.
+
+## 🔒 Security Policy
+
+Please review our [Security Policy](SECURITY.md) before contributing. Never commit sensitive information or open public issues for security vulnerabilities.
+
 ## 🎯 Project Overview
 
 Adverant Nexus Open Core is a production-grade TypeScript/Node.js platform for:
@@ -231,6 +251,91 @@ describe('StorageEngine', () => {
 });
 ```
 
+## 🔌 Plugin Development
+
+Nexus supports a powerful plugin system for extending functionality. See the [Plugin Development Guide](docs/plugins/development.md) for comprehensive documentation.
+
+### Quick Start
+
+1. **Use the example plugin as a template**:
+   ```bash
+   cp -r examples/example-plugin my-plugin
+   cd my-plugin
+   ```
+
+2. **Update package.json**:
+   - Change name to `@nexus-plugin/your-plugin-name`
+   - Update metadata (description, author, etc.)
+
+3. **Implement your plugin**:
+   ```typescript
+   import { NexusPlugin } from '@adverant/nexus-plugin-system';
+
+   const myPlugin: NexusPlugin = {
+     metadata: { /* ... */ },
+     hooks: { /* ... */ },
+     capabilities: { /* ... */ }
+   };
+
+   export default myPlugin;
+   ```
+
+4. **Test and publish**:
+   ```bash
+   npm run build
+   npm test
+   npm publish --access public
+   ```
+
+### Plugin Capabilities
+
+Plugins can extend:
+- **Tools**: Add custom tools for MageAgent
+- **Agents**: Create specialized agents
+- **Document Processors**: Support new file types in GraphRAG
+- **API Routes**: Extend the REST API
+- **Middleware**: Add custom request processing
+
+See [examples/example-plugin](examples/example-plugin) for a complete working example.
+
+## 📄 Issue and PR Templates
+
+We use GitHub issue and PR templates to streamline contributions:
+
+### Reporting Issues
+
+Choose the appropriate template:
+- **Bug Report**: Report bugs with reproduction steps
+- **Feature Request**: Suggest new features
+- **Documentation**: Report documentation issues
+
+Find templates at: [Issues > New Issue](https://github.com/adverant/Adverant-Nexus-Open-Core/issues/new/choose)
+
+### Submitting Pull Requests
+
+All PRs must use our [PR template](.github/PULL_REQUEST_TEMPLATE.md) which includes:
+- Type of change checklist
+- Testing verification
+- Documentation updates
+- Security considerations
+- Breaking change documentation
+
+## 🏛️ Governance
+
+This project follows a meritocratic governance model. See [GOVERNANCE.md](GOVERNANCE.md) for details on:
+- Contributor roles and responsibilities
+- Decision-making processes
+- How to become a maintainer
+- Conflict resolution
+
+## 🗺️ Roadmap
+
+Check our [ROADMAP.md](ROADMAP.md) to see:
+- Planned features by quarter
+- Current priorities
+- How to influence the roadmap
+- Voting on features
+
 ## 🌍 Community Guidelines
 
 ### Be Respectful
@@ -242,9 +347,17 @@ describe('StorageEngine', () => {
 
 ### Communication Channels
 
-- **GitHub Issues**: Bug reports, feature requests
+- **GitHub Issues**: Bug reports, feature requests ([Issue Templates](https://github.com/adverant/Adverant-Nexus-Open-Core/issues/new/choose))
 - **GitHub Discussions**: Questions, ideas, showcases
-- **Discord**: Real-time chat (link in README)
+- **Discord**: Real-time chat (https://discord.gg/adverant)
+- **Monthly Community Calls**: First Tuesday of each month (announced in Discord)
+
+### Support
+
+See [SUPPORT.md](SUPPORT.md) for:
+- Where to get help
+- Community support channels
+- Commercial support options
 
 ## 📝 Documentation
 

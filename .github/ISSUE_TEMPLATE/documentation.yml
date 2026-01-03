@@ -1,0 +1,90 @@
+name: Documentation Issue
+description: Report missing, incorrect, or unclear documentation
+title: "[Docs]: "
+labels: ["documentation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Documentation Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation (feature not documented)
+        - Incorrect information (docs don't match reality)
+        - Unclear explanation (confusing or ambiguous)
+        - Broken links or references
+        - Typo or formatting issue
+        - Outdated documentation
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: Documentation Issue
+      description: Describe what's wrong or missing
+      placeholder: |
+        The documentation for X says Y, but actually Z happens...
+        There's no documentation for the new plugin system...
+        The example code doesn't work because...
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Document Location
+      description: URL or file path to the problematic documentation
+      placeholder: |
+        https://github.com/adverant/Adverant-Nexus-Open-Core/blob/main/docs/getting-started.md
+        OR
+        docs/api/graphrag.md
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Fix
+      description: How should the documentation be corrected or improved?
+      placeholder: |
+        The docs should explain...
+        Add a section about...
+        Update the example to show...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples
+      placeholder: |
+        - Screenshot of the confusing section
+        - Code example that should be included
+        - Link to related issues or PRs
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to submit a pull request to fix this?
+      options:
+        - label: I am willing to submit a pull request to fix this documentation issue

@@ -1,13 +1,35 @@
-# Adverant Nexus Open Core
+<p align="center">
+  <img src="assets/logos/nexus-logo-512x512.png" alt="Nexus Logo" width="200"/>
+</p>
 
-## Build Production AI Platforms 3-6× Faster
+<h1 align="center">Adverant Nexus Open Core</h1>
 
-**Production-grade GraphRAG + Multi-Agent orchestration platform that cuts AI development time from 12-18 months to 3-4 months and reduces infrastructure costs by 86%.**
+<p align="center">
+  <strong>Build Production AI Platforms 3-6× Faster</strong>
+</p>
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE-2.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Native-326CE5?logo=kubernetes)](https://kubernetes.io)
-[![Build Status](https://img.shields.io/badge/Build-Passing-success)](https://github.com/adverant/Adverant-Nexus-Open-Core)
+<p align="center">
+  Production-grade GraphRAG + Multi-Agent orchestration platform that cuts AI development time from 12-18 months to 3-4 months and reduces infrastructure costs by 86%.
+</p>
+
+<p align="center">
+  <a href="LICENSE-APACHE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"/></a>
+  <a href="LICENSE-ELASTIC"><img src="https://img.shields.io/badge/License-Elastic%202.0-blue.svg" alt="Elastic License"/></a>
+  <a href="https://github.com/adverant/Adverant-Nexus-Open-Core/releases"><img src="https://img.shields.io/github/v/release/adverant/Adverant-Nexus-Open-Core?label=Version" alt="Release"/></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.3+-blue?logo=typescript" alt="TypeScript"/></a>
+  <a href="https://kubernetes.io"><img src="https://img.shields.io/badge/Kubernetes-Native-326CE5?logo=kubernetes" alt="Kubernetes"/></a>
+  <img src="https://img.shields.io/badge/Build-Passing-success" alt="Build Status"/>
+  <a href="https://github.com/adverant/Adverant-Nexus-Open-Core/stargazers"><img src="https://img.shields.io/github/stars/adverant/Adverant-Nexus-Open-Core?style=social" alt="Stars"/></a>
+</p>
+
+<p align="center">
+  <a href="#-the-solution-composable-ai-architecture-that-actually-works">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="docs/getting-started.md">Documentation</a> •
+  <a href="#-production-use-cases">Use Cases</a> •
+  <a href="CONTRIBUTING.md">Contributing</a> •
+  <a href="https://discord.gg/adverant">Discord</a>
+</p>
 
 ---
 

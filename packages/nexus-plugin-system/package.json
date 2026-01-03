@@ -1,0 +1,45 @@
+{
+  "name": "@adverant/nexus-plugin-system",
+  "version": "1.0.0",
+  "description": "Plugin system for Adverant Nexus Open Core - enables domain-specific extensions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "nexus",
+    "plugin",
+    "plugin-system",
+    "extensibility",
+    "ai",
+    "graphrag",
+    "multi-agent"
+  ],
+  "author": "Adverant",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adverant/Adverant-Nexus-Open-Core.git",
+    "directory": "packages/nexus-plugin-system"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

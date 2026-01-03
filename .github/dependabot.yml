@@ -1,0 +1,155 @@
+version: 2
+
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "automated"
+    reviewers:
+      - "don-adverant"
+    assignees:
+      - "don-adverant"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    versioning-strategy: increase
+
+  # Package-specific updates
+  - package-ecosystem: "npm"
+    directory: "/packages/nexus-plugin-system"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "plugin-system"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-logger"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "logger"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-config"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "config"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-types"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "types"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-db"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "database"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-redis"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "redis"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-vector"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "vector"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-graph"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "graph"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-auth"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "auth"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-mcp"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "mcp"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/adverant-errors"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "errors"
+
+  # Services
+  - package-ecosystem: "npm"
+    directory: "/services/nexus-graphrag"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "graphrag"
+
+  - package-ecosystem: "npm"
+    directory: "/services/nexus-mageagent"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "mageagent"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    reviewers:
+      - "don-adverant"
+    commit-message:
+      prefix: "ci"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"

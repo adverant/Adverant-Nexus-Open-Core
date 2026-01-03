@@ -1,0 +1,134 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! We appreciate your input in making Nexus better.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues and discussions to avoid duplicates
+          required: true
+        - label: This is not a bug report (use the Bug Report template for bugs)
+          required: true
+        - label: This feature aligns with the project's goals
+          required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Describe the pain point or limitation.
+      placeholder: |
+        I'm frustrated when...
+        Currently, I have to...
+        There's no way to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you solve this problem? Describe your ideal implementation.
+      placeholder: |
+        I would like to be able to...
+        The system should...
+        A new API endpoint that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other solutions did you consider? Why won't they work?
+      placeholder: |
+        I considered using X, but...
+        Alternative approach Y doesn't work because...
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component would this feature affect?
+      options:
+        - GraphRAG (memory and retrieval)
+        - MageAgent (multi-agent orchestration)
+        - API / Gateway
+        - Plugin System
+        - Documentation
+        - Infrastructure / Deployment
+        - CLI Tools
+        - Multiple components
+        - Other (specify in additional context)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Feature Tier
+      description: Should this be open-source or a paid feature?
+      options:
+        - Open Source (available to all users)
+        - Pro Tier (paid feature)
+        - Enterprise Tier (enterprise feature)
+        - Not sure (let maintainers decide)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Critical (blocking my use case)
+        - High (significant value)
+        - Medium (nice to have)
+        - Low (minor improvement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case and how you would use this feature
+      placeholder: |
+        I'm building a customer support bot that needs to...
+        In my production environment, I have...
+        This would help me...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, examples, or references
+      placeholder: |
+        - Similar feature in other tools (e.g., LangChain does X)
+        - Mockups or diagrams
+        - Code examples
+        - Links to related resources
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I am willing to submit a pull request for this feature
+        - label: I can help with testing
+        - label: I can help with documentation
