@@ -1,0 +1,88 @@
+# Adverant Nexus Open Core - Dual License
+
+This project is licensed under a dual-license model:
+
+## Apache License 2.0 (Open Source Core)
+
+The **core functionality** of Adverant Nexus is licensed under the Apache License 2.0.
+This includes:
+
+- GraphRAG core storage and retrieval (episodic memory, vector search, graph storage)
+- MageAgent core orchestration (multi-agent coordination, task management, streaming)
+- Basic API Gateway functionality
+- Core authentication (JWT, OAuth basics)
+- Shared TypeScript packages and utilities
+- CLI tools (`@adverant/nexus-cli`)
+- Docker and Kubernetes deployment manifests
+- Community plugins (publicly available on GitHub)
+
+See [LICENSE-APACHE-2.0](./LICENSE-APACHE-2.0) for full terms.
+
+**You are free to**:
+- Use commercially
+- Modify and distribute
+- Use privately
+- Patent use
+- Sublicense
+
+## Elastic License 2.0 (Enterprise Features)
+
+**Enterprise-only features** are licensed under the Elastic License 2.0.
+This includes:
+
+### GraphRAG Enterprise
+- GDPR compliance tools (Right to Delete, Right to Access, Data Portability)
+- Multi-tenant row-level security (RLS)
+- Advanced query optimization
+- Google Drive/Notion/Confluence ingestion
+- Real-time document change detection
+
+### MageAgent Enterprise
+- Smart Model Router (cost optimization across providers)
+- Agent Pre-Warmer (cold-start elimination)
+- Performance Profiler & Analytics Dashboard
+- Autonomous mode (self-directed task execution)
+- Cross-team collaboration features
+
+### Enterprise Infrastructure
+- Advanced monitoring and observability
+- Auto-scaling and load balancing
+- Enterprise SSO (SAML, LDAP, Okta, Auth0)
+- Audit logging and compliance reporting
+- SLA guarantees and priority support
+
+See [LICENSE-ELASTIC](./LICENSE-ELASTIC) for full terms.
+
+**Elastic License restrictions**:
+- ❌ You may NOT provide this software as a hosted or managed SaaS service
+- ❌ You may NOT circumvent license key functionality
+- ✅ You CAN use it internally within your organization
+- ✅ You CAN modify and distribute (subject to restrictions)
+
+## How to determine which license applies
+
+Check the `.visibility.json` file at the root of this repository for a comprehensive
+mapping of which files/directories fall under which license.
+
+**General rule**:
+- If in doubt, assume Apache 2.0 for core packages
+- Enterprise features are clearly marked in source code comments
+- Proprietary enterprise code is NOT included in this repository
+
+## Commercial Licensing
+
+For commercial licenses, enterprise support, or custom agreements:
+- Email: licenses@adverant.ai
+- Website: https://adverant.ai/enterprise
+
+## Trademarks
+
+"Adverant", "Nexus", "GraphRAG", and "MageAgent" are trademarks of Adverant, Inc.
+Use of these trademarks is subject to our trademark policy.
+
+---
+
+Copyright 2025 Adverant, Inc.
+
+Apache License 2.0: http://www.apache.org/licenses/LICENSE-2.0
+Elastic License 2.0: https://www.elastic.co/licensing/elastic-license
