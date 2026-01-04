@@ -4,7 +4,7 @@
  * AI-powered repository analysis and architecture discovery
  */
 
-export type GitPlatform = 'github' | 'gitlab' | 'bitbucket';
+export type GitPlatform = 'github' | 'gitlab' | 'bitbucket' | 'local';
 
 export type RepositoryType =
   | 'backend'
@@ -120,6 +120,7 @@ export interface RepositoryParseResult {
   owner?: string;
   name?: string;
   branch?: string;
+  localPath?: string;  // For local file:// URLs or absolute paths
   error?: string;
 }
 
@@ -292,7 +293,7 @@ export interface AnalysisUsage {
 }
 
 export interface AnalysisResult {
-  detectedType: RepositoryType;
+  detectedType: TypeDetectionResult;
   techStack: TechStack[];
   architecture: ArchitectureAnalysis;
   findings: Finding[];
@@ -330,6 +331,18 @@ export interface TenantContext {
   userId: string;
   tenantId?: string;
   requestId?: string;
+}
+
+/**
+ * Configuration for the analyzer
+ */
+export interface AnalyzerConfig {
+  mageAgentUrl?: string;
+  graphRagUrl?: string;
+  enableAiAnalysis?: boolean;
+  tempDir?: string;
+  maxFileSizeBytes?: number;
+  excludePatterns?: string[];
 }
 
 /**

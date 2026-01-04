@@ -1,71 +1,47 @@
 {
   "name": "@adverant/repo-analyzer",
   "version": "1.0.0",
-  "description": "AI-powered repository analysis and architecture discovery for Nexus Open Core",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "AI-powered repository analysis and architecture discovery",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "repository",
     "analysis",
-    "code-analysis",
     "architecture",
     "ai",
-    "llm",
-    "graphrag",
-    "nexus"
+    "code-analysis"
   ],
   "author": "Adverant",
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adverant/Adverant-Nexus-Open-Core.git",
-    "directory": "packages/repo-analyzer"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
+  "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^21.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "axios": "^1.7.0",
-    "glob": "^11.0.0",
-    "ignore": "^6.0.0",
-    "isomorphic-git": "^1.27.0",
-    "node-fetch": "^3.3.0",
-    "simple-git": "^3.27.0",
-    "tar": "^7.0.0",
-    "uuid": "^10.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/tar": "^6.1.0",
-    "@types/uuid": "^10.0.0",
-    "typescript": "^5.6.0"
+    "isomorphic-git": "^1.27.1",
+    "simple-git": "^3.27.0"
   },
   "peerDependencies": {
-    "@adverant/logger": "^1.0.0",
-    "@adverant/config": "^1.0.0"
+    "typescript": "^5.0.0"
   },
-  "peerDependenciesMeta": {
-    "@adverant/logger": {
-      "optional": true
-    },
-    "@adverant/config": {
-      "optional": true
-    }
-  }
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }

@@ -1,481 +1,368 @@
 /**
- * Repository Type Detection Service
- * Analyzes repository structure to determine project type and tech stack
+ * Repository Type Detector
  *
- * @module @adverant/repo-analyzer
+ * Analyzes a repository's structure, dependencies, and files to determine
+ * its type (backend, frontend, mobile, etc.) and technology stack.
  */
 
-import * as path from 'path';
-import {
+import type {
   RepositoryType,
   TechStack,
   TypeDetectionResult,
   TypeIndicator,
-  TYPE_DETECTION_PATTERNS,
-  TECH_STACK_PATTERNS,
-  FileInfo,
-  DirectoryStructure,
 } from './types/index.js';
-import { RepoManager } from './manager.js';
+import type { RepoManager } from './manager.js';
 
-/**
- * Weights for different detection methods
- */
-const DETECTION_WEIGHTS = {
-  file: 0.3,
-  dependency: 0.4,
-  pattern: 0.2,
-  structure: 0.1,
-};
+interface PackageJson {
+  name?: string;
+  version?: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
+  workspaces?: string[] | { packages: string[] };
+}
 
-/**
- * Priority order for type detection (higher = checked first)
- */
-const TYPE_PRIORITY: Record<RepositoryType, number> = {
-  'infra-as-code': 100,
-  'library': 90,
-  'monorepo': 85,
-  'mobile': 80,
-  'frontend': 70,
-  'backend': 60,
-  'unknown': 0,
-};
-
-/**
- * Type Detector - Analyzes repository structure to determine project type
- */
 export class TypeDetector {
-  private repoManager: RepoManager;
+  private readonly repoManager: RepoManager;
+  private readonly repoPath: string;
 
-  constructor(repoManager: RepoManager) {
+  constructor(repoManager: RepoManager, repoPath: string) {
     this.repoManager = repoManager;
+    this.repoPath = repoPath;
   }
 
   /**
-   * Detect repository type and tech stack
+   * Detect repository type and technology stack
    */
-  async detect(
-    localPath: string,
-    directoryStructure: DirectoryStructure,
-    files: FileInfo[]
-  ): Promise<TypeDetectionResult> {
+  async detect(): Promise<TypeDetectionResult> {
     const indicators: TypeIndicator[] = [];
+    const techStack: TechStack[] = [];
 
-    // Collect all indicators
-    await this.detectFromFiles(localPath, files, indicators);
-    await this.detectFromDependencies(localPath, indicators);
-    this.detectFromStructure(directoryStructure, indicators);
+    // Gather file-based indicators
+    const fileIndicators = await this.detectFromFiles();
+    indicators.push(...fileIndicators);
 
-    // Calculate scores for each type
-    const typeScores = this.calculateTypeScores(indicators);
+    // Gather dependency-based indicators
+    const depIndicators = await this.detectFromDependencies();
+    indicators.push(...depIndicators);
 
-    // Determine primary type
-    const sortedTypes = Object.entries(typeScores)
-      .filter(([_, score]) => score > 0)
-      .sort((a, b) => {
-        // Sort by score, then by priority
-        const scoreDiff = b[1] - a[1];
-        if (Math.abs(scoreDiff) < 0.1) {
-          return TYPE_PRIORITY[b[0] as RepositoryType] - TYPE_PRIORITY[a[0] as RepositoryType];
-        }
-        return scoreDiff;
-      });
-
-    const primaryType = (sortedTypes[0]?.[0] as RepositoryType) || 'unknown';
-    const confidence = sortedTypes[0]?.[1] || 0;
+    // Gather structure-based indicators
+    const structureIndicators = await this.detectFromStructure();
+    indicators.push(...structureIndicators);
 
     // Detect tech stack
-    const techStack = await this.detectTechStack(localPath, files, indicators);
+    const detectedTech = await this.detectTechStack();
+    techStack.push(...detectedTech);
 
-    // Check for monorepo sub-types
-    let subTypes: RepositoryType[] | undefined;
-    if (primaryType === 'monorepo') {
-      subTypes = await this.detectMonorepoSubTypes(localPath, directoryStructure);
-    }
+    // Calculate primary type from indicators
+    const { primaryType, confidence, subTypes } = this.calculatePrimaryType(indicators);
 
     return {
       primaryType,
-      confidence: Math.min(confidence, 1),
+      confidence,
       techStack,
-      indicators: indicators.filter((i) => i.confidence > 0.3),
+      indicators,
       subTypes,
     };
   }
 
   /**
-   * Detect from file presence
+   * Quick detection without full analysis
    */
-  private async detectFromFiles(
-    _localPath: string,
-    files: FileInfo[],
-    indicators: TypeIndicator[]
-  ): Promise<void> {
-    const fileNames = new Set(files.map((f) => f.name.toLowerCase()));
-    const filePaths = new Set(files.map((f) => f.path.toLowerCase()));
+  async quickDetect(): Promise<{ type: RepositoryType; confidence: number }> {
+    const indicators: TypeIndicator[] = [];
 
-    for (const [repoType, patterns] of Object.entries(TYPE_DETECTION_PATTERNS)) {
-      for (const pattern of patterns) {
-        const normalizedPattern = pattern.toLowerCase().replace('/', '');
+    // Only check critical files for quick detection
+    const criticalFiles = [
+      { file: 'pnpm-workspace.yaml', type: 'monorepo' as RepositoryType },
+      { file: 'lerna.json', type: 'monorepo' as RepositoryType },
+      { file: 'nx.json', type: 'monorepo' as RepositoryType },
+      { file: 'turbo.json', type: 'monorepo' as RepositoryType },
+      { file: 'next.config.js', type: 'frontend' as RepositoryType },
+      { file: 'next.config.mjs', type: 'frontend' as RepositoryType },
+      { file: 'nuxt.config.js', type: 'frontend' as RepositoryType },
+      { file: 'angular.json', type: 'frontend' as RepositoryType },
+      { file: 'main.tf', type: 'infra-as-code' as RepositoryType },
+      { file: 'Pulumi.yaml', type: 'infra-as-code' as RepositoryType },
+      { file: 'pubspec.yaml', type: 'mobile' as RepositoryType },
+      { file: 'Podfile', type: 'mobile' as RepositoryType },
+    ];
 
-        // Check file names
-        if (fileNames.has(normalizedPattern)) {
-          indicators.push({
-            type: 'file',
-            name: pattern,
-            confidence: 0.7,
-            suggestedType: repoType as RepositoryType,
-          });
-          continue;
-        }
-
-        // Check paths (for directory patterns)
-        if (pattern.endsWith('/')) {
-          const dirName = pattern.slice(0, -1).toLowerCase();
-          for (const filePath of filePaths) {
-            if (filePath.startsWith(dirName + '/') || filePath.includes('/' + dirName + '/')) {
-              indicators.push({
-                type: 'file',
-                name: pattern,
-                path: filePath,
-                confidence: 0.6,
-                suggestedType: repoType as RepositoryType,
-              });
-              break;
-            }
-          }
-        }
+    for (const { file, type } of criticalFiles) {
+      if (this.repoManager.exists(this.repoPath, file)) {
+        indicators.push({
+          type: 'file',
+          name: file,
+          path: file,
+          confidence: 0.9,
+          suggestedType: type,
+        });
       }
     }
+
+    // Check for packages/apps directories (monorepo)
+    if (
+      this.repoManager.exists(this.repoPath, 'packages') ||
+      this.repoManager.exists(this.repoPath, 'apps')
+    ) {
+      indicators.push({
+        type: 'structure',
+        name: 'packages-or-apps-dir',
+        confidence: 0.7,
+        suggestedType: 'monorepo',
+      });
+    }
+
+    // Check package.json for hints
+    const packageJson = this.repoManager.readJsonFile<PackageJson>(
+      this.repoPath,
+      'package.json'
+    );
+
+    if (packageJson) {
+      // Check for workspaces
+      if (packageJson.workspaces) {
+        indicators.push({
+          type: 'dependency',
+          name: 'npm-workspaces',
+          confidence: 0.9,
+          suggestedType: 'monorepo',
+        });
+      }
+
+      // Check dependencies for frontend frameworks
+      const allDeps = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      };
+
+      if (allDeps['next'] || allDeps['react'] || allDeps['vue'] || allDeps['@angular/core']) {
+        indicators.push({
+          type: 'dependency',
+          name: 'frontend-framework',
+          confidence: 0.8,
+          suggestedType: 'frontend',
+        });
+      }
+
+      // Check for backend frameworks
+      if (allDeps['express'] || allDeps['fastify'] || allDeps['@nestjs/core'] || allDeps['koa']) {
+        indicators.push({
+          type: 'dependency',
+          name: 'backend-framework',
+          confidence: 0.8,
+          suggestedType: 'backend',
+        });
+      }
+    }
+
+    const { primaryType, confidence } = this.calculatePrimaryType(indicators);
+    return { type: primaryType, confidence };
   }
 
   /**
-   * Detect from package dependencies
+   * Detect indicators from file presence
    */
-  private async detectFromDependencies(
-    localPath: string,
-    indicators: TypeIndicator[]
-  ): Promise<void> {
+  private async detectFromFiles(): Promise<TypeIndicator[]> {
+    const indicators: TypeIndicator[] = [];
+
+    const typePatterns: Record<RepositoryType, Array<{ pattern: string; confidence: number }>> = {
+      monorepo: [
+        { pattern: 'pnpm-workspace.yaml', confidence: 0.95 },
+        { pattern: 'lerna.json', confidence: 0.95 },
+        { pattern: 'nx.json', confidence: 0.95 },
+        { pattern: 'turbo.json', confidence: 0.9 },
+      ],
+      frontend: [
+        { pattern: 'next.config.js', confidence: 0.9 },
+        { pattern: 'next.config.mjs', confidence: 0.9 },
+        { pattern: 'nuxt.config.js', confidence: 0.9 },
+        { pattern: 'angular.json', confidence: 0.95 },
+        { pattern: 'svelte.config.js', confidence: 0.9 },
+        { pattern: 'vite.config.ts', confidence: 0.7 },
+        { pattern: 'webpack.config.js', confidence: 0.6 },
+      ],
+      backend: [
+        { pattern: 'requirements.txt', confidence: 0.6 },
+        { pattern: 'go.mod', confidence: 0.7 },
+        { pattern: 'Cargo.toml', confidence: 0.7 },
+        { pattern: 'pom.xml', confidence: 0.8 },
+        { pattern: 'build.gradle', confidence: 0.7 },
+        { pattern: 'Gemfile', confidence: 0.6 },
+        { pattern: 'composer.json', confidence: 0.6 },
+      ],
+      mobile: [
+        { pattern: 'pubspec.yaml', confidence: 0.95 },
+        { pattern: 'Podfile', confidence: 0.8 },
+        { pattern: 'capacitor.config.json', confidence: 0.9 },
+        { pattern: 'app.json', confidence: 0.5 },
+      ],
+      'infra-as-code': [
+        { pattern: 'main.tf', confidence: 0.95 },
+        { pattern: 'Pulumi.yaml', confidence: 0.95 },
+        { pattern: 'ansible.cfg', confidence: 0.9 },
+        { pattern: 'Chart.yaml', confidence: 0.8 },
+        { pattern: 'docker-compose.yml', confidence: 0.5 },
+      ],
+      library: [
+        { pattern: 'setup.py', confidence: 0.7 },
+        { pattern: 'pyproject.toml', confidence: 0.6 },
+      ],
+      unknown: [],
+    };
+
+    for (const [type, patterns] of Object.entries(typePatterns)) {
+      for (const { pattern, confidence } of patterns) {
+        if (this.repoManager.exists(this.repoPath, pattern)) {
+          indicators.push({
+            type: 'file',
+            name: pattern,
+            path: pattern,
+            confidence,
+            suggestedType: type as RepositoryType,
+          });
+        }
+      }
+    }
+
+    return indicators;
+  }
+
+  /**
+   * Detect indicators from dependencies
+   */
+  private async detectFromDependencies(): Promise<TypeIndicator[]> {
+    const indicators: TypeIndicator[] = [];
+
     // Check package.json
-    const packageJson = await this.readPackageJson(localPath);
+    const packageJson = this.repoManager.readJsonFile<PackageJson>(
+      this.repoPath,
+      'package.json'
+    );
+
     if (packageJson) {
       const allDeps = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
       };
 
-      // Check for framework-specific dependencies
-      this.checkDependencies(allDeps, indicators);
+      // Monorepo indicators
+      if (packageJson.workspaces) {
+        indicators.push({
+          type: 'dependency',
+          name: 'npm-workspaces',
+          confidence: 0.9,
+          suggestedType: 'monorepo',
+        });
+      }
 
-      // Check package.json structure for library indicators
-      if (packageJson.main || packageJson.exports || packageJson.types) {
+      // Frontend framework dependencies
+      const frontendDeps: Array<{ dep: string; confidence: number }> = [
+        { dep: 'next', confidence: 0.9 },
+        { dep: 'react', confidence: 0.7 },
+        { dep: 'vue', confidence: 0.8 },
+        { dep: '@angular/core', confidence: 0.9 },
+        { dep: 'svelte', confidence: 0.8 },
+        { dep: '@remix-run/react', confidence: 0.9 },
+        { dep: 'gatsby', confidence: 0.9 },
+      ];
+
+      for (const { dep, confidence } of frontendDeps) {
+        if (allDeps[dep]) {
+          indicators.push({
+            type: 'dependency',
+            name: dep,
+            confidence,
+            suggestedType: 'frontend',
+          });
+        }
+      }
+
+      // Backend framework dependencies
+      const backendDeps: Array<{ dep: string; confidence: number }> = [
+        { dep: 'express', confidence: 0.8 },
+        { dep: 'fastify', confidence: 0.85 },
+        { dep: '@nestjs/core', confidence: 0.9 },
+        { dep: 'koa', confidence: 0.8 },
+        { dep: 'hapi', confidence: 0.8 },
+      ];
+
+      for (const { dep, confidence } of backendDeps) {
+        if (allDeps[dep]) {
+          indicators.push({
+            type: 'dependency',
+            name: dep,
+            confidence,
+            suggestedType: 'backend',
+          });
+        }
+      }
+
+      // Mobile dependencies
+      const mobileDeps: Array<{ dep: string; confidence: number }> = [
+        { dep: 'react-native', confidence: 0.95 },
+        { dep: '@capacitor/core', confidence: 0.9 },
+        { dep: '@ionic/react', confidence: 0.9 },
+        { dep: 'expo', confidence: 0.9 },
+      ];
+
+      for (const { dep, confidence } of mobileDeps) {
+        if (allDeps[dep]) {
+          indicators.push({
+            type: 'dependency',
+            name: dep,
+            confidence,
+            suggestedType: 'mobile',
+          });
+        }
+      }
+
+      // Library indicators
+      if (packageJson.name?.startsWith('@') || allDeps['rollup'] || allDeps['tsup']) {
         indicators.push({
           type: 'pattern',
-          name: 'Library exports',
-          confidence: 0.6,
+          name: 'library-pattern',
+          confidence: 0.5,
           suggestedType: 'library',
         });
       }
     }
 
-    // Check requirements.txt (Python)
-    const requirements = await this.repoManager.readFile(localPath, 'requirements.txt');
-    if (requirements) {
-      this.checkPythonDependencies(requirements, indicators);
-    }
-
-    // Check go.mod (Go)
-    const goMod = await this.repoManager.readFile(localPath, 'go.mod');
-    if (goMod) {
-      this.checkGoDependencies(goMod, indicators);
-    }
-
-    // Check Cargo.toml (Rust)
-    const cargoToml = await this.repoManager.readFile(localPath, 'Cargo.toml');
-    if (cargoToml) {
-      this.checkRustDependencies(cargoToml, indicators);
-    }
+    return indicators;
   }
 
   /**
-   * Read and parse package.json
+   * Detect indicators from directory structure
    */
-  private async readPackageJson(localPath: string): Promise<{
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    main?: string;
-    exports?: unknown;
-    types?: string;
-    scripts?: Record<string, string>;
-  } | null> {
-    const content = await this.repoManager.readFile(localPath, 'package.json');
-    if (!content) return null;
+  private async detectFromStructure(): Promise<TypeIndicator[]> {
+    const indicators: TypeIndicator[] = [];
 
-    try {
-      return JSON.parse(content);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Check npm/yarn dependencies for type indicators
-   */
-  private checkDependencies(
-    deps: Record<string, string>,
-    indicators: TypeIndicator[]
-  ): void {
-    const depNames = Object.keys(deps);
-
-    // Frontend frameworks
-    if (depNames.includes('react') || depNames.includes('react-dom')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'react',
-        confidence: 0.8,
-        suggestedType: 'frontend',
-      });
-    }
-    if (depNames.includes('vue')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'vue',
-        confidence: 0.8,
-        suggestedType: 'frontend',
-      });
-    }
-    if (depNames.includes('@angular/core')) {
-      indicators.push({
-        type: 'dependency',
-        name: '@angular/core',
-        confidence: 0.8,
-        suggestedType: 'frontend',
-      });
-    }
-    if (depNames.includes('svelte')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'svelte',
-        confidence: 0.8,
-        suggestedType: 'frontend',
-      });
-    }
-
-    // Next.js/Nuxt (can be backend too)
-    if (depNames.includes('next')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'next',
-        confidence: 0.7,
-        suggestedType: 'frontend',
-      });
-    }
-
-    // Backend frameworks
-    if (depNames.includes('express')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'express',
-        confidence: 0.8,
-        suggestedType: 'backend',
-      });
-    }
-    if (depNames.includes('@nestjs/core')) {
-      indicators.push({
-        type: 'dependency',
-        name: '@nestjs/core',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (depNames.includes('fastify')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'fastify',
-        confidence: 0.8,
-        suggestedType: 'backend',
-      });
-    }
-    if (depNames.includes('koa')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'koa',
-        confidence: 0.8,
-        suggestedType: 'backend',
-      });
-    }
-
-    // Mobile
-    if (depNames.includes('react-native')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'react-native',
-        confidence: 0.95,
-        suggestedType: 'mobile',
-      });
-    }
-    if (depNames.includes('@ionic/angular') || depNames.includes('@ionic/react') || depNames.includes('@ionic/vue')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'ionic',
-        confidence: 0.9,
-        suggestedType: 'mobile',
-      });
-    }
-    if (depNames.includes('@capacitor/core')) {
-      indicators.push({
-        type: 'dependency',
-        name: '@capacitor/core',
-        confidence: 0.85,
-        suggestedType: 'mobile',
-      });
-    }
-
-    // Monorepo tools
-    if (depNames.includes('lerna') || depNames.includes('nx') || depNames.includes('turbo')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'monorepo-tool',
-        confidence: 0.9,
-        suggestedType: 'monorepo',
-      });
-    }
-  }
-
-  /**
-   * Check Python dependencies
-   */
-  private checkPythonDependencies(requirements: string, indicators: TypeIndicator[]): void {
-    const deps = requirements.toLowerCase();
-
-    if (deps.includes('django')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'django',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (deps.includes('flask')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'flask',
-        confidence: 0.85,
-        suggestedType: 'backend',
-      });
-    }
-    if (deps.includes('fastapi')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'fastapi',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (deps.includes('kivy') || deps.includes('beeware')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'python-mobile',
-        confidence: 0.8,
-        suggestedType: 'mobile',
-      });
-    }
-  }
-
-  /**
-   * Check Go dependencies
-   */
-  private checkGoDependencies(goMod: string, indicators: TypeIndicator[]): void {
-    if (goMod.includes('github.com/gin-gonic/gin')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'gin',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (goMod.includes('github.com/gofiber/fiber')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'fiber',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (goMod.includes('github.com/labstack/echo')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'echo',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-  }
-
-  /**
-   * Check Rust dependencies
-   */
-  private checkRustDependencies(cargoToml: string, indicators: TypeIndicator[]): void {
-    if (cargoToml.includes('actix-web')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'actix-web',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (cargoToml.includes('rocket')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'rocket',
-        confidence: 0.9,
-        suggestedType: 'backend',
-      });
-    }
-    if (cargoToml.includes('tauri')) {
-      indicators.push({
-        type: 'dependency',
-        name: 'tauri',
-        confidence: 0.85,
-        suggestedType: 'frontend',
-      });
-    }
-  }
-
-  /**
-   * Detect from directory structure
-   */
-  private detectFromStructure(
-    structure: DirectoryStructure,
-    indicators: TypeIndicator[]
-  ): void {
-    if (!structure.children) return;
-
-    const topLevelDirs = structure.children
-      .filter((c) => c.type === 'directory')
-      .map((c) => c.name.toLowerCase());
-
-    // Monorepo indicators
-    if (topLevelDirs.includes('packages') || topLevelDirs.includes('apps')) {
+    // Monorepo structure
+    if (this.repoManager.exists(this.repoPath, 'packages')) {
       indicators.push({
         type: 'structure',
-        name: 'monorepo-structure',
+        name: 'packages-directory',
+        path: 'packages',
         confidence: 0.7,
         suggestedType: 'monorepo',
       });
     }
 
-    // Infrastructure indicators
-    if (topLevelDirs.includes('terraform') || topLevelDirs.includes('infrastructure')) {
+    if (this.repoManager.exists(this.repoPath, 'apps')) {
       indicators.push({
         type: 'structure',
-        name: 'infra-directory',
-        confidence: 0.8,
-        suggestedType: 'infra-as-code',
+        name: 'apps-directory',
+        path: 'apps',
+        confidence: 0.7,
+        suggestedType: 'monorepo',
       });
     }
 
-    // Mobile indicators
-    if (topLevelDirs.includes('ios') && topLevelDirs.includes('android')) {
+    // Mobile structure
+    if (
+      this.repoManager.exists(this.repoPath, 'ios') &&
+      this.repoManager.exists(this.repoPath, 'android')
+    ) {
       indicators.push({
         type: 'structure',
         name: 'mobile-platforms',
@@ -484,50 +371,200 @@ export class TypeDetector {
       });
     }
 
-    // Frontend indicators
-    if (topLevelDirs.includes('components') || topLevelDirs.includes('pages')) {
+    // Infrastructure structure
+    if (this.repoManager.exists(this.repoPath, 'terraform')) {
       indicators.push({
         type: 'structure',
-        name: 'frontend-structure',
-        confidence: 0.5,
+        name: 'terraform-directory',
+        path: 'terraform',
+        confidence: 0.85,
+        suggestedType: 'infra-as-code',
+      });
+    }
+
+    if (
+      this.repoManager.exists(this.repoPath, 'k8s') ||
+      this.repoManager.exists(this.repoPath, 'kubernetes')
+    ) {
+      indicators.push({
+        type: 'structure',
+        name: 'kubernetes-directory',
+        confidence: 0.7,
+        suggestedType: 'infra-as-code',
+      });
+    }
+
+    // Frontend structure
+    if (
+      this.repoManager.exists(this.repoPath, 'src/components') ||
+      this.repoManager.exists(this.repoPath, 'components')
+    ) {
+      indicators.push({
+        type: 'structure',
+        name: 'components-directory',
+        confidence: 0.6,
         suggestedType: 'frontend',
       });
     }
 
-    // Backend indicators
-    if (
-      topLevelDirs.includes('controllers') ||
-      topLevelDirs.includes('routes') ||
-      topLevelDirs.includes('api')
-    ) {
+    if (this.repoManager.exists(this.repoPath, 'public')) {
       indicators.push({
         type: 'structure',
-        name: 'backend-structure',
-        confidence: 0.5,
-        suggestedType: 'backend',
+        name: 'public-directory',
+        confidence: 0.4,
+        suggestedType: 'frontend',
       });
     }
 
-    // Library indicators
-    if (topLevelDirs.includes('lib') || topLevelDirs.includes('src')) {
-      const hasTests = topLevelDirs.includes('test') || topLevelDirs.includes('tests');
-      const hasExamples = topLevelDirs.includes('examples');
-      if (hasTests && hasExamples) {
-        indicators.push({
-          type: 'structure',
-          name: 'library-structure',
-          confidence: 0.6,
-          suggestedType: 'library',
-        });
-      }
+    // Library structure
+    if (
+      this.repoManager.exists(this.repoPath, 'lib') ||
+      this.repoManager.exists(this.repoPath, 'src/lib')
+    ) {
+      indicators.push({
+        type: 'structure',
+        name: 'lib-directory',
+        confidence: 0.4,
+        suggestedType: 'library',
+      });
     }
+
+    return indicators;
   }
 
   /**
-   * Calculate weighted scores for each type
+   * Detect technology stack
    */
-  private calculateTypeScores(indicators: TypeIndicator[]): Record<RepositoryType, number> {
-    const scores: Record<RepositoryType, number> = {
+  private async detectTechStack(): Promise<TechStack[]> {
+    const stack: Set<TechStack> = new Set();
+
+    // Check for TypeScript
+    if (this.repoManager.exists(this.repoPath, 'tsconfig.json')) {
+      stack.add('typescript');
+    }
+
+    // Check package.json dependencies
+    const packageJson = this.repoManager.readJsonFile<PackageJson>(
+      this.repoPath,
+      'package.json'
+    );
+
+    if (packageJson) {
+      stack.add('javascript');
+
+      const allDeps = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      };
+
+      // Frameworks
+      if (allDeps['react'] || allDeps['react-dom']) stack.add('react');
+      if (allDeps['vue']) stack.add('vue');
+      if (allDeps['@angular/core']) stack.add('angular');
+      if (allDeps['svelte']) stack.add('svelte');
+      if (allDeps['next']) stack.add('nextjs');
+      if (allDeps['nuxt']) stack.add('nuxt');
+      if (allDeps['express']) stack.add('express');
+      if (allDeps['fastify']) stack.add('fastify');
+      if (allDeps['@nestjs/core']) stack.add('nestjs');
+      if (allDeps['react-native']) stack.add('react-native');
+
+      // Databases
+      if (allDeps['pg'] || allDeps['@prisma/client'] || allDeps['postgres']) stack.add('postgresql');
+      if (allDeps['mysql'] || allDeps['mysql2']) stack.add('mysql');
+      if (allDeps['mongodb'] || allDeps['mongoose']) stack.add('mongodb');
+      if (allDeps['redis'] || allDeps['ioredis']) stack.add('redis');
+      if (allDeps['neo4j-driver']) stack.add('neo4j');
+
+      // Testing
+      if (allDeps['jest']) stack.add('jest');
+      if (allDeps['vitest']) stack.add('vitest');
+      if (allDeps['mocha']) stack.add('mocha');
+      if (allDeps['cypress']) stack.add('cypress');
+      if (allDeps['@playwright/test']) stack.add('playwright');
+
+      // Other
+      if (allDeps['graphql'] || allDeps['apollo-server']) stack.add('graphql');
+      if (allDeps['ws'] || allDeps['socket.io']) stack.add('websocket');
+    }
+
+    // Check for Python
+    if (
+      this.repoManager.exists(this.repoPath, 'requirements.txt') ||
+      this.repoManager.exists(this.repoPath, 'pyproject.toml') ||
+      this.repoManager.exists(this.repoPath, 'setup.py')
+    ) {
+      stack.add('python');
+
+      // Check for Python frameworks
+      const requirements = this.repoManager.readFile(this.repoPath, 'requirements.txt');
+      if (requirements) {
+        if (requirements.includes('django')) stack.add('django');
+        if (requirements.includes('flask')) stack.add('flask');
+        if (requirements.includes('fastapi')) stack.add('fastapi');
+        if (requirements.includes('pytest')) stack.add('pytest');
+      }
+    }
+
+    // Check for Go
+    if (this.repoManager.exists(this.repoPath, 'go.mod')) {
+      stack.add('go');
+    }
+
+    // Check for Rust
+    if (this.repoManager.exists(this.repoPath, 'Cargo.toml')) {
+      stack.add('rust');
+    }
+
+    // Check for Docker
+    if (
+      this.repoManager.exists(this.repoPath, 'Dockerfile') ||
+      this.repoManager.exists(this.repoPath, 'docker-compose.yml')
+    ) {
+      stack.add('docker');
+    }
+
+    // Check for Kubernetes
+    if (
+      this.repoManager.exists(this.repoPath, 'k8s') ||
+      this.repoManager.exists(this.repoPath, 'kubernetes')
+    ) {
+      stack.add('kubernetes');
+    }
+
+    // Check for Terraform
+    if (this.repoManager.exists(this.repoPath, 'main.tf')) {
+      stack.add('terraform');
+    }
+
+    // Check for OpenAPI
+    if (
+      this.repoManager.exists(this.repoPath, 'openapi.yaml') ||
+      this.repoManager.exists(this.repoPath, 'openapi.json') ||
+      this.repoManager.exists(this.repoPath, 'swagger.yaml') ||
+      this.repoManager.exists(this.repoPath, 'swagger.json')
+    ) {
+      stack.add('openapi');
+      stack.add('rest');
+    }
+
+    return Array.from(stack);
+  }
+
+  /**
+   * Calculate primary type from indicators
+   */
+  private calculatePrimaryType(indicators: TypeIndicator[]): {
+    primaryType: RepositoryType;
+    confidence: number;
+    subTypes?: RepositoryType[];
+  } {
+    if (indicators.length === 0) {
+      return { primaryType: 'unknown', confidence: 0 };
+    }
+
+    // Weight indicators by confidence and count
+    const typeScores: Record<RepositoryType, number> = {
       backend: 0,
       frontend: 0,
       mobile: 0,
@@ -538,121 +575,39 @@ export class TypeDetector {
     };
 
     for (const indicator of indicators) {
-      const weight = DETECTION_WEIGHTS[indicator.type];
-      const score = indicator.confidence * weight;
-      scores[indicator.suggestedType] += score;
+      typeScores[indicator.suggestedType] += indicator.confidence;
     }
 
-    // Normalize scores
-    const maxScore = Math.max(...Object.values(scores), 0.01);
-    for (const type of Object.keys(scores) as RepositoryType[]) {
-      scores[type] = scores[type] / maxScore;
+    // Sort types by score
+    const sortedTypes = Object.entries(typeScores)
+      .filter(([_, score]) => score > 0)
+      .sort(([, a], [, b]) => b - a) as Array<[RepositoryType, number]>;
+
+    if (sortedTypes.length === 0) {
+      return { primaryType: 'unknown', confidence: 0 };
     }
 
-    return scores;
-  }
-
-  /**
-   * Detect tech stack
-   */
-  private async detectTechStack(
-    localPath: string,
-    files: FileInfo[],
-    indicators: TypeIndicator[]
-  ): Promise<TechStack[]> {
-    const detected = new Set<TechStack>();
-    const fileExtensions = new Set(files.map((f) => f.extension));
-    const fileNames = new Set(files.map((f) => f.name.toLowerCase()));
-
-    for (const [tech, patterns] of Object.entries(TECH_STACK_PATTERNS)) {
-      // Check files
-      if (patterns.files) {
-        for (const filePattern of patterns.files) {
-          if (filePattern.startsWith('*.')) {
-            const ext = filePattern.slice(1);
-            if (fileExtensions.has(ext)) {
-              detected.add(tech as TechStack);
-              break;
-            }
-          } else if (fileNames.has(filePattern.toLowerCase())) {
-            detected.add(tech as TechStack);
-            break;
-          }
-        }
-      }
-
-      // Check dependencies (from indicators)
-      if (patterns.dependencies) {
-        for (const dep of patterns.dependencies) {
-          const hasIndicator = indicators.some(
-            (i) => i.type === 'dependency' && i.name.toLowerCase().includes(dep.toLowerCase())
-          );
-          if (hasIndicator) {
-            detected.add(tech as TechStack);
-            break;
-          }
-        }
-      }
+    const firstType = sortedTypes[0];
+    if (!firstType) {
+      return { primaryType: 'unknown', confidence: 0 };
     }
 
-    // Also check package.json directly for more accurate detection
-    const packageJson = await this.readPackageJson(localPath);
-    if (packageJson) {
-      const allDeps = Object.keys({
-        ...packageJson.dependencies,
-        ...packageJson.devDependencies,
-      });
+    const [primaryType, primaryScore] = firstType;
 
-      for (const [tech, patterns] of Object.entries(TECH_STACK_PATTERNS)) {
-        if (patterns.dependencies) {
-          for (const dep of patterns.dependencies) {
-            if (allDeps.some((d) => d.toLowerCase() === dep.toLowerCase())) {
-              detected.add(tech as TechStack);
-              break;
-            }
-          }
-        }
-      }
+    // Calculate confidence (normalize to 0-1)
+    const maxPossibleScore = indicators.length;
+    const confidence = Math.min(primaryScore / maxPossibleScore, 1);
+
+    // Check for subtypes (relevant for monorepos)
+    let subTypes: RepositoryType[] | undefined;
+    if (primaryType === 'monorepo' && sortedTypes.length > 1) {
+      subTypes = sortedTypes
+        .slice(1)
+        .filter(([type, score]) => score > 0.3 && type !== 'unknown')
+        .map(([type]) => type);
     }
 
-    return Array.from(detected);
-  }
-
-  /**
-   * Detect sub-types for monorepos
-   */
-  private async detectMonorepoSubTypes(
-    localPath: string,
-    structure: DirectoryStructure
-  ): Promise<RepositoryType[]> {
-    const subTypes = new Set<RepositoryType>();
-
-    // Check common monorepo directories
-    const packageDirs = ['packages', 'apps', 'libs', 'modules'];
-
-    for (const dir of packageDirs) {
-      const dirPath = structure.children?.find(
-        (c) => c.type === 'directory' && c.name.toLowerCase() === dir
-      );
-
-      if (dirPath?.children) {
-        for (const subDir of dirPath.children) {
-          if (subDir.type === 'directory') {
-            // Analyze each package
-            const subLocalPath = path.join(localPath, dir, subDir.name);
-            const files = await this.repoManager.getFiles(subLocalPath);
-            const subStructure = await this.repoManager.getDirectoryStructure(subLocalPath, 2);
-
-            const result = await this.detect(subLocalPath, subStructure, files);
-            if (result.primaryType !== 'unknown' && result.primaryType !== 'monorepo') {
-              subTypes.add(result.primaryType);
-            }
-          }
-        }
-      }
-    }
-
-    return Array.from(subTypes);
+    return { primaryType, confidence, subTypes };
   }
 }
 
