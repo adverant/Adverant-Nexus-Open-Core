@@ -1,0 +1,181 @@
+# FileProcessAgent Load Testing Configuration
+#
+# Uses Artillery for HTTP load testing with real document uploads.
+# Install: npm install -g artillery
+# Run: artillery run loadtest-config.yml
+#
+# Scenarios:
+# 1. Steady load: 10 uploads/second for 5 minutes
+# 2. Ramp up: 1 to 50 uploads/second over 10 minutes
+# 3. Spike test: Sudden burst of 100 uploads
+# 4. Sustained load: 20 uploads/second for 30 minutes
+
+config:
+  target: "http://localhost:9096"
+  phases:
+    # Phase 1: Warmup (1 minute)
+    - duration: 60
+      arrivalRate: 5
+      name: "Warmup"
+
+    # Phase 2: Steady load (5 minutes)
+    - duration: 300
+      arrivalRate: 10
+      name: "Steady Load"
+
+    # Phase 3: Ramp up (10 minutes)
+    - duration: 600
+      arrivalRate: 1
+      rampTo: 50
+      name: "Ramp Up"
+
+    # Phase 4: Spike test (1 minute burst)
+    - duration: 60
+      arrivalRate: 100
+      name: "Spike Test"
+
+    # Phase 5: Sustained high load (30 minutes)
+    - duration: 1800
+      arrivalRate: 20
+      name: "Sustained Load"
+
+    # Phase 6: Cool down (2 minutes)
+    - duration: 120
+      arrivalRate: 2
+      name: "Cool Down"
+
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 1        # Max 1% error rate
+    p95: 15000             # 95th percentile under 15 seconds
+    p99: 30000             # 99th percentile under 30 seconds
+
+  # HTTP defaults
+  http:
+    timeout: 60
+    maxSockets: 100
+
+  # Payload configuration
+  payload:
+    path: "test-documents.csv"
+    fields:
+      - filename
+      - content
+    order: sequence
+    skipHeader: true
+
+  # Variables
+  variables:
+    userId:
+      - "loadtest-user-1"
+      - "loadtest-user-2"
+      - "loadtest-user-3"
+      - "loadtest-user-4"
+      - "loadtest-user-5"
+
+  # Plugins for enhanced reporting
+  plugins:
+    expect: {}
+    metrics-by-endpoint:
+      stripQueryString: true
+
+scenarios:
+  # Scenario 1: File upload with small documents
+  - name: "Upload Small Documents"
+    weight: 50
+    flow:
+      - post:
+          url: "/api/process"
+          headers:
+            Content-Type: "multipart/form-data"
+          formData:
+            userId: "{{ userId }}"
+            file:
+              path: "./test-data/small-document.txt"
+            metadata: '{"test":"loadtest","size":"small","scenario":"upload-small"}'
+          capture:
+            - json: "$.jobId"
+              as: "jobId"
+          expect:
+            - statusCode: 202
+            - contentType: json
+            - hasProperty: jobId
+
+      # Poll job status (up to 3 times)
+      - think: 2
+      - get:
+          url: "/api/jobs/{{ jobId }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 2: File upload with medium documents
+  - name: "Upload Medium Documents"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/process"
+          headers:
+            Content-Type: "multipart/form-data"
+          formData:
+            userId: "{{ userId }}"
+            file:
+              path: "./test-data/medium-document.txt"
+            metadata: '{"test":"loadtest","size":"medium","scenario":"upload-medium"}'
+          capture:
+            - json: "$.jobId"
+              as: "jobId"
+          expect:
+            - statusCode: 202
+
+      - think: 3
+      - get:
+          url: "/api/jobs/{{ jobId }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 3: File upload with large documents
+  - name: "Upload Large Documents"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/process"
+          headers:
+            Content-Type: "multipart/form-data"
+          formData:
+            userId: "{{ userId }}"
+            file:
+              path: "./test-data/large-document.txt"
+            metadata: '{"test":"loadtest","size":"large","scenario":"upload-large"}'
+          capture:
+            - json: "$.jobId"
+              as: "jobId"
+          expect:
+            - statusCode: 202
+
+      - think: 5
+      - get:
+          url: "/api/jobs/{{ jobId }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 4: Health check monitoring
+  - name: "Health Check Monitoring"
+    weight: 5
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: status
+
+  # Scenario 5: Queue statistics monitoring
+  - name: "Queue Stats Monitoring"
+    weight: 5
+    flow:
+      - get:
+          url: "/api/queue/stats"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: success
