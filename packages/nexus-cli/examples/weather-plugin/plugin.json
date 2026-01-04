@@ -1,0 +1,49 @@
+{
+  "name": "weather-plugin",
+  "version": "1.0.0",
+  "description": "Example weather plugin for Nexus CLI",
+  "author": "Nexus Team",
+  "main": "dist/index.js",
+  "commands": [
+    {
+      "name": "current",
+      "description": "Get current weather for a city",
+      "args": [
+        {
+          "name": "city",
+          "type": "string",
+          "required": true,
+          "description": "City name"
+        }
+      ]
+    },
+    {
+      "name": "forecast",
+      "description": "Get weather forecast",
+      "args": [
+        {
+          "name": "city",
+          "type": "string",
+          "required": true,
+          "description": "City name"
+        }
+      ],
+      "options": [
+        {
+          "long": "days",
+          "type": "number",
+          "description": "Number of days to forecast",
+          "default": 5
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "type": "network",
+      "scope": "http",
+      "level": "read"
+    }
+  ],
+  "dependencies": []
+}

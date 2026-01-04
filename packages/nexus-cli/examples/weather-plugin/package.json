@@ -1,0 +1,28 @@
+{
+  "name": "@nexus-plugin/weather-plugin",
+  "version": "1.0.0",
+  "description": "Example weather plugin for Nexus CLI",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "nexus",
+    "plugin",
+    "weather",
+    "example"
+  ],
+  "author": "Nexus Team",
+  "license": "MIT",
+  "dependencies": {
+    "@adverant-nexus/cli-sdk": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5"
+  }
+}
