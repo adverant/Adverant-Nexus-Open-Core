@@ -76,7 +76,7 @@ export interface LocalComputeConfig {
  */
 export const DEFAULT_COMPUTE_CONFIG: LocalComputeConfig = {
   name: '',
-  gatewayUrl: 'https://api.adverant.ai/hpc',
+  gatewayUrl: process.env.NEXUS_HPC_GATEWAY_URL || process.env.NEXUS_API_URL || 'http://localhost:9000',
   maxMemoryPercent: 75,
   allowRemoteJobs: false,
   idleTimeoutMinutes: 30,

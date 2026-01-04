@@ -310,6 +310,90 @@ nexus mageagent orchestrate --task "..." --verbose
 
 ## Configuration
 
+### Self-Hosted Deployment Configuration
+
+The Nexus CLI is designed to work with both the Adverant Cloud platform and self-hosted Nexus Open Core deployments.
+
+#### Environment Variables
+
+Configure the CLI to connect to your self-hosted Nexus instance using environment variables:
+
+```bash
+# Primary HPC Gateway URL (for compute operations)
+export NEXUS_HPC_GATEWAY_URL="http://your-server:9000"
+
+# General Nexus API URL (fallback for all services)
+export NEXUS_API_URL="http://your-server:9000"
+
+# API authentication (if required)
+export NEXUS_API_KEY="your-api-key"
+```
+
+**URL Fallback Chain**: The CLI uses the following priority:
+1. `NEXUS_HPC_GATEWAY_URL` - Specific compute gateway URL
+2. `NEXUS_API_URL` - General API endpoint
+3. `http://localhost:9000` - Default for local development
+
+#### Docker Compose Example
+
+```yaml
+version: '3.8'
+services:
+  nexus-cli:
+    image: node:20-alpine
+    environment:
+      - NEXUS_API_URL=http://nexus-gateway:9000
+      - NEXUS_HPC_GATEWAY_URL=http://nexus-hpc-gateway:9000
+      - NEXUS_API_KEY=${NEXUS_API_KEY}
+    volumes:
+      - ./project:/workspace
+    working_dir: /workspace
+    command: npx @adverant-nexus/cli agent run --task "..."
+```
+
+#### Kubernetes Configuration
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-cli-config
+data:
+  NEXUS_API_URL: "http://nexus-gateway.nexus.svc.cluster.local:9000"
+  NEXUS_HPC_GATEWAY_URL: "http://nexus-hpc-gateway.nexus.svc.cluster.local:9000"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nexus-cli-job
+spec:
+  containers:
+  - name: cli
+    image: node:20-alpine
+    envFrom:
+    - configMapRef:
+        name: nexus-cli-config
+    env:
+    - name: NEXUS_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: nexus-credentials
+          key: api-key
+    command: ["npx", "@adverant-nexus/cli", "compute", "agent", "start"]
+```
+
+#### Command-Line Override
+
+You can also specify the gateway URL directly in commands:
+
+```bash
+# Specify gateway for compute operations
+nexus compute agent start --gateway http://your-server:9000
+
+# Commands automatically use environment variables if available
+nexus compute submit --script train.py
+```
+
 ### Global Configuration
 
 Located at: `~/.nexus/config.toml`

@@ -48,7 +48,7 @@ export class LocalComputeClient extends EventEmitter<ComputeEvents> {
 
     const agentPort = options.agentPort ?? 9200;
     this.agentUrl = `http://localhost:${agentPort}`;
-    this.gatewayUrl = options.gatewayUrl ?? 'https://api.adverant.ai/hpc';
+    this.gatewayUrl = options.gatewayUrl ?? process.env.NEXUS_HPC_GATEWAY_URL ?? process.env.NEXUS_API_URL ?? 'http://localhost:9000';
     this.timeout = options.timeout ?? 30000;
 
     this.agentClient = axios.create({
