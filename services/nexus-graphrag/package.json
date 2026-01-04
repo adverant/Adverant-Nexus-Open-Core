@@ -76,7 +76,7 @@
     "sharp": "^0.33.0",
     "socket.io": "^4.6.1",
     "tesseract.js": "^7.0.0",
-    "uuid": "^9.0.1",
+    "uuid": "^13.0.0",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^4.7.1",
     "ws": "^8.17.0"
