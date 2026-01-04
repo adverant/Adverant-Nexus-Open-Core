@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fileprocess-test-full
+  namespace: nexus
+  labels:
+    app: fileprocess-test
+    purpose: integration-testing
+spec:
+  containers:
+  - name: test
+    image: ubuntu:22.04
+    command:
+      - sh
+      - -c
+      - |
+        echo "=== FileProcessAgent Test Pod Initialization ==="
+        echo "Installing test tools..."
+
+        # Update package manager
+        apt-get update -qq
+
+        # Install all required tools for archive testing
+        apt-get install -y --no-install-recommends \
+          curl \
+          jq \
+          bash \
+          python3 \
+          python3-pip \
+          zip \
+          unzip \
+          tar \
+          gzip \
+          bzip2 \
+          sqlite3 \
+          file \
+          wget \
+          ca-certificates \
+          > /dev/null 2>&1
+
+        # Verify all tools are installed
+        echo ""
+        echo "=== Installed Tools Verification ==="
+        echo "curl:    $(which curl)"
+        echo "jq:      $(which jq)"
+        echo "bash:    $(which bash)"
+        echo "python3: $(which python3)"
+        echo "zip:     $(which zip)"
+        echo "unzip:   $(which unzip)"
+        echo "tar:     $(which tar)"
+        echo "gzip:    $(which gzip)"
+        echo "bzip2:   $(which bzip2)"
+        echo "sqlite3: $(which sqlite3)"
+        echo "file:    $(which file)"
+
+        echo ""
+        echo "=== Test Pod Ready ==="
+        echo "Pod is ready for FileProcessAgent testing"
+        echo "Available services:"
+        echo "  - FileProcess API: http://nexus-fileprocess:8096"
+        echo "  - GraphRAG: http://nexus-graphrag:9090"
+        echo "  - MageAgent: http://nexus-mageagent:8080"
+        echo ""
+        echo "Example test command:"
+        echo "  curl -X POST http://nexus-fileprocess:8096/api/fileprocess/process -F 'file=@test.pdf'"
+        echo ""
+        echo "Sleeping for 3600 seconds (1 hour)..."
+        sleep 3600
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 10

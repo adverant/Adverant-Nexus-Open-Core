@@ -1,0 +1,452 @@
+#compdef nexus
+# Zsh completion script for Nexus CLI
+# Install: Copy to a directory in $fpath (e.g., /usr/local/share/zsh/site-functions/)
+
+_nexus() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    # Global options
+    local -a global_opts
+    global_opts=(
+        '(- *)'{-h,--help}'[Show help information]'
+        '(- *)'{-V,--version}'[Show version information]'
+        '--config[Specify config file path]:config file:_files'
+        '--profile[Use specific profile]:profile:(default production staging development)'
+        '(-o --output-format)'{-o,--output-format}'[Output format]:format:(text json yaml table stream-json)'
+        '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+        '(-q --quiet)'{-q,--quiet}'[Minimal output (errors only)]'
+        '--no-color[Disable colored output]'
+        '--timeout[Request timeout in milliseconds]:timeout (ms):'
+        '--retries[Number of retries]:retries:'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :_nexus_commands' \
+        '*:: :->args'
+
+    case $state in
+        args)
+            case ${words[1]} in
+                services)
+                    _nexus_services
+                    ;;
+                brain)
+                    _nexus_brain
+                    ;;
+                agent)
+                    _nexus_agent
+                    ;;
+                session)
+                    _nexus_session
+                    ;;
+                plugin)
+                    _nexus_plugin
+                    ;;
+                workspace)
+                    _nexus_workspace
+                    ;;
+                init)
+                    _nexus_init
+                    ;;
+                deploy)
+                    _nexus_deploy
+                    ;;
+                login)
+                    _nexus_login
+                    ;;
+                logs)
+                    _nexus_logs
+                    ;;
+                *)
+                    _message 'no more arguments'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Main commands
+_nexus_commands() {
+    local -a commands
+    commands=(
+        'version:Show version information'
+        'config:Configuration management'
+        'workspace:Workspace management (init, info, validate, git)'
+        'services:Service management (start, stop, restart, status, logs)'
+        'brain:Brain MCP tools - Memory, Knowledge Graph, Code Analysis'
+        'agent:Autonomous agent management (run, list, status)'
+        'repl:Start interactive REPL mode'
+        'session:Session management (save, load, resume, import, export)'
+        'plugin:Plugin management (install, uninstall, enable, disable)'
+        'init:Initialize new workspace or project'
+        'deploy:Deploy services to environment'
+        'login:Authenticate with Nexus platform'
+        'register:Register new account'
+        'logs:View service logs'
+        'list:List available resources'
+        'help:Display help for command'
+    )
+    _describe 'command' commands
+}
+
+# Services subcommands
+_nexus_services() {
+    local -a subcmds
+    subcmds=(
+        'list:List all available services'
+        'status:Show service status'
+        'health:Check service health'
+        'info:Display detailed service information'
+        'logs:View service logs'
+        'start:Start one or more services'
+        'stop:Stop one or more services'
+        'restart:Restart one or more services'
+        'ports:Show service port mappings'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'services subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                start|stop|restart|info|logs|status)
+                    _nexus_service_names
+                    ;;
+                list|health|ports)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Brain subcommands
+_nexus_brain() {
+    local -a subcmds
+    subcmds=(
+        'list:List all available Brain tools'
+        'categories:List Brain tool categories'
+        'refresh:Refresh Brain tools from MCP server'
+        'health:Check Brain system health'
+        'store-memory:Store a memory/fact in Brain'
+        'recall-memory:Recall memories from Brain'
+        'store-document:Store a document in Brain'
+        'store-episode:Store an episode/event'
+        'store-pattern:Store a learned pattern'
+        'retrieve:Advanced retrieval with multiple strategies'
+        'recall-episodes:Recall past episodes with temporal context'
+        'enhanced-retrieve:Unified retrieval across all memory types'
+        'store-entity:Store entity in knowledge graph'
+        'query-entities:Query knowledge graph entities'
+        'create-entity-relationship:Create relationship between entities'
+        'validate-code:Multi-model code validation'
+        'validate-command:Validate shell commands before execution'
+        'analyze-code:Fast single-model code analysis'
+        'orchestrate:Multi-agent orchestration for complex tasks'
+        'trigger-learning:Trigger progressive learning on topics'
+        'recall-learned-knowledge:Retrieve learned knowledge'
+        'inject-context:Manually inject context for operations'
+        'get-suggestions:Get AI suggestions for operations'
+        'ingest-url:Ingest files from URL (Google Drive, GitHub, etc.)'
+        'ingest-url-confirm:Confirm and start URL ingestion'
+        'check-ingestion-job:Check ingestion job status'
+        'validation-result:Get code validation results'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'brain subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                list)
+                    _arguments \
+                        $global_opts \
+                        '(-c --category)'{-c,--category}'[Filter by category]:category:' \
+                        '(-v --verbose)'{-v,--verbose}'[Show detailed information]'
+                    ;;
+                store-document|ingest-url)
+                    _arguments \
+                        $global_opts \
+                        '*:file:_files'
+                    ;;
+                store-memory)
+                    _arguments \
+                        $global_opts \
+                        '--content[Memory content]:content:' \
+                        '--tags[Tags (comma-separated)]:tags:' \
+                        '--importance[Importance (0-1)]:importance:'
+                    ;;
+                recall-memory|retrieve)
+                    _arguments \
+                        $global_opts \
+                        '--query[Search query]:query:' \
+                        '--limit[Maximum results]:limit:' \
+                        '--threshold[Score threshold]:threshold:'
+                    ;;
+                validate-code|analyze-code)
+                    _arguments \
+                        $global_opts \
+                        '--code[Code to analyze]:code:' \
+                        '--language[Programming language]:language:(typescript javascript python go rust java)' \
+                        '--risk-level[Risk level]:level:(low medium high critical)'
+                    ;;
+                orchestrate)
+                    _arguments \
+                        $global_opts \
+                        '--task[Task description]:task:' \
+                        '--max-agents[Maximum agents]:count:' \
+                        '--timeout[Timeout in ms]:timeout:'
+                    ;;
+                *)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Agent subcommands
+_nexus_agent() {
+    local -a subcmds
+    subcmds=(
+        'run:Run an autonomous agent'
+        'list:List available agents'
+        'status:Show agent status'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'agent subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                run)
+                    _arguments \
+                        $global_opts \
+                        '--task[Task description]:task:' \
+                        '--timeout[Timeout in seconds]:timeout:' \
+                        '--max-iterations[Maximum iterations]:iterations:'
+                    ;;
+                *)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Session subcommands
+_nexus_session() {
+    local -a subcmds
+    subcmds=(
+        'save:Save current session'
+        'load:Load a saved session'
+        'list:List all saved sessions'
+        'resume:Resume a session'
+        'import:Import session from file'
+        'export:Export session to file'
+        'delete:Delete a saved session'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'session subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                save)
+                    _arguments \
+                        $global_opts \
+                        '--name[Session name]:name:' \
+                        '--description[Session description]:description:'
+                    ;;
+                load|resume|delete)
+                    _nexus_session_names
+                    ;;
+                import|export)
+                    _arguments \
+                        $global_opts \
+                        '*:file:_files'
+                    ;;
+                *)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Plugin subcommands
+_nexus_plugin() {
+    local -a subcmds
+    subcmds=(
+        'install:Install a plugin'
+        'uninstall:Uninstall a plugin'
+        'list:List installed plugins'
+        'init:Initialize a new plugin'
+        'enable:Enable a plugin'
+        'disable:Disable a plugin'
+        'info:Show plugin information'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'plugin subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                install)
+                    _arguments \
+                        $global_opts \
+                        '--path[Install from path]:path:_files -/' \
+                        '--git[Install from git repository]:git url:' \
+                        '--npm[Install from npm]:package:'
+                    ;;
+                uninstall|enable|disable|info)
+                    _nexus_plugin_names
+                    ;;
+                *)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Workspace subcommands
+_nexus_workspace() {
+    local -a subcmds
+    subcmds=(
+        'init:Initialize workspace'
+        'info:Show workspace information'
+        'validate:Validate workspace configuration'
+        'git-status:Show git status'
+        'git-commit:Commit changes'
+    )
+
+    _arguments -C \
+        $global_opts \
+        '1: :->subcmd' \
+        '*:: :->args'
+
+    case $state in
+        subcmd)
+            _describe 'workspace subcommand' subcmds
+            ;;
+        args)
+            case ${words[1]} in
+                init)
+                    _arguments \
+                        $global_opts \
+                        '--name[Workspace name]:name:' \
+                        '--template[Template to use]:template:' \
+                        '--path[Workspace path]:path:_files -/'
+                    ;;
+                git-commit)
+                    _arguments \
+                        $global_opts \
+                        '(-m --message)'{-m,--message}'[Commit message]:message:' \
+                        '--amend[Amend previous commit]' \
+                        '--no-verify[Skip git hooks]'
+                    ;;
+                *)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Init command
+_nexus_init() {
+    _arguments \
+        $global_opts \
+        '--name[Project name]:name:' \
+        '--template[Template to use]:template:' \
+        '--path[Project path]:path:_files -/' \
+        '--force[Force overwrite existing files]'
+}
+
+# Deploy command
+_nexus_deploy() {
+    _arguments \
+        $global_opts \
+        '--environment[Target environment]:environment:(development staging production)' \
+        '--service[Specific service to deploy]:service:_nexus_service_names' \
+        '--all[Deploy all services]' \
+        '--dry-run[Perform dry run without actual deployment]'
+}
+
+# Login command
+_nexus_login() {
+    _arguments \
+        $global_opts \
+        '--username[Username]:username:' \
+        '--password[Password]:password:' \
+        '--token[Authentication token]:token:' \
+        '--sso[Use SSO authentication]'
+}
+
+# Logs command
+_nexus_logs() {
+    _arguments \
+        $global_opts \
+        '--service[Service name]:service:_nexus_service_names' \
+        '(-f --follow)'{-f,--follow}'[Follow log output]' \
+        '--tail[Number of lines to show]:lines:' \
+        '--since[Show logs since timestamp]:timestamp:' \
+        '--until[Show logs until timestamp]:timestamp:'
+}
+
+# Helper: Complete service names
+_nexus_service_names() {
+    local -a services
+    services=(${(f)"$(nexus services list --output-format text 2>/dev/null | tail -n +2 | awk '{print $1":"$2}')"})
+    _describe 'service' services
+}
+
+# Helper: Complete session names
+_nexus_session_names() {
+    local -a sessions
+    sessions=(${(f)"$(nexus session list --output-format text 2>/dev/null | tail -n +2 | awk '{print $1":"$2}')"})
+    _describe 'session' sessions
+}
+
+# Helper: Complete plugin names
+_nexus_plugin_names() {
+    local -a plugins
+    plugins=(${(f)"$(nexus plugin list --output-format text 2>/dev/null | tail -n +2 | awk '{print $1":"$2}')"})
+    _describe 'plugin' plugins
+}
+
+# Run the completion function
+_nexus "$@"

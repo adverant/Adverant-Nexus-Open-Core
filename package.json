@@ -8,7 +8,8 @@
     "services/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build:deps && npm run build --workspaces --if-present",
+    "build:deps": "npm run build --workspace=@adverant/logger --workspace=@adverant/errors --workspace=@adverant/resilience",
     "build:packages": "npm run build --workspace=packages/*",
     "build:services": "npm run build --workspace=services/*",
     "test": "npm run test --workspaces --if-present",

@@ -1,0 +1,539 @@
+openapi: 3.0.3
+info:
+  title: FileProcessAgent API
+  version: 1.0.0
+  description: |
+    Document processing API with vision AI, table extraction, and semantic search.
+
+    ## Features
+    - Document upload and URL processing
+    - OCR with vision models (MageAgent)
+    - Table extraction (97.9% accuracy target)
+    - Batch embedding generation (VoyageAI)
+    - Real-time WebSocket progress updates
+    - Job management and status tracking
+
+    ## Architecture
+    - REST API (Express + TypeScript)
+    - PostgreSQL for job metadata
+    - Redis for job queue
+    - Go worker for document processing
+    - Integration with MageAgent, GraphRAG, LearningAgent
+
+  contact:
+    name: Adverant AI
+    url: https://adverant.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8096
+    description: Development server
+  - url: http://nexus-fileprocess:8096
+    description: Docker internal network
+  - url: https://api.adverant.com/fileprocess
+    description: Production server
+
+tags:
+  - name: Document Processing
+    description: Submit documents for processing
+  - name: Job Management
+    description: Track and manage processing jobs
+  - name: Health
+    description: Service health and readiness
+  - name: Metrics
+    description: Prometheus metrics
+
+paths:
+  /fileprocess/api/process:
+    post:
+      tags:
+        - Document Processing
+      summary: Submit document for processing
+      description: |
+        Upload a document file for processing. Supports files up to 5GB.
+
+        Processing includes:
+        - OCR with vision models
+        - Layout analysis
+        - Table extraction
+        - Text chunking
+        - Embedding generation
+        - Storage in Document DNA
+
+      operationId: processDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to process (PDF, DOCX, images, etc.)
+                userId:
+                  type: string
+                  default: anonymous
+                  description: User ID for tracking
+                metadata:
+                  type: string
+                  description: JSON string with additional metadata
+      responses:
+        '202':
+          description: Document queued for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessFileResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: File too large
+        '503':
+          description: Service unavailable (storage error)
+
+  /fileprocess/api/process/url:
+    post:
+      tags:
+        - Document Processing
+      summary: Submit document URL for processing
+      description: |
+        Submit a document URL (Google Drive, HTTP, etc.) for processing.
+
+        Supports:
+        - Google Drive files and folders
+        - HTTP/HTTPS URLs
+        - Public and authenticated URLs
+
+      operationId: processDocumentUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileUrl
+                - filename
+              properties:
+                fileUrl:
+                  type: string
+                  format: uri
+                  example: https://drive.google.com/file/d/abc123/view
+                filename:
+                  type: string
+                  example: document.pdf
+                mimeType:
+                  type: string
+                  example: application/pdf
+                userId:
+                  type: string
+                  default: anonymous
+                metadata:
+                  type: object
+                  description: Additional metadata
+      responses:
+        '202':
+          description: Document queued for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessFileResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /fileprocess/api/jobs/{jobId}:
+    get:
+      tags:
+        - Job Management
+      summary: Get job status
+      description: Retrieve the current status and details of a processing job
+      operationId: getJobStatus
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Job ID returned from job submission
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '404':
+          description: Job not found
+
+    delete:
+      tags:
+        - Job Management
+      summary: Cancel job
+      description: Cancel a queued or processing job
+      operationId: cancelJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job cancelled successfully
+        '404':
+          description: Job not found
+        '409':
+          description: Job already completed or failed
+
+  /fileprocess/api/jobs:
+    get:
+      tags:
+        - Job Management
+      summary: List jobs
+      description: List processing jobs with optional filtering
+      operationId: listJobs
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, processing, completed, failed, cancelled]
+          description: Filter by job status
+        - name: userId
+          in: query
+          schema:
+            type: string
+          description: Filter by user ID
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+  /fileprocess/api/queue/stats:
+    get:
+      tags:
+        - Job Management
+      summary: Get queue statistics
+      description: Retrieve statistics about the processing queue
+      operationId: getQueueStats
+      responses:
+        '200':
+          description: Queue statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueStats'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Basic health check
+      description: Returns 200 if service is alive (liveness probe)
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /health/ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: |
+        Returns 200 if service can handle requests (readiness probe).
+        Checks: PostgreSQL, Redis
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service not ready
+
+  /health/detailed:
+    get:
+      tags:
+        - Health
+      summary: Detailed health status
+      description: |
+        Returns detailed health information for all dependencies:
+        - PostgreSQL
+        - Redis
+        - GraphRAG
+        - MageAgent
+      operationId: detailedHealthCheck
+      responses:
+        '200':
+          description: Detailed health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthResponse'
+
+  /metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Prometheus metrics
+      description: Prometheus metrics endpoint for scraping
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                # HELP fileprocess_http_requests_total Total number of HTTP requests
+                # TYPE fileprocess_http_requests_total counter
+                fileprocess_http_requests_total{method="GET",route="/health",status_code="200"} 1542
+
+components:
+  schemas:
+    ProcessFileResponse:
+      type: object
+      required:
+        - success
+        - jobId
+        - message
+      properties:
+        success:
+          type: boolean
+        jobId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        message:
+          type: string
+          example: Document queued for processing
+        estimatedTime:
+          type: string
+          example: 2-15 seconds
+
+    JobResponse:
+      type: object
+      required:
+        - success
+        - job
+      properties:
+        success:
+          type: boolean
+        job:
+          $ref: '#/components/schemas/Job'
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        filename:
+          type: string
+        status:
+          type: string
+          enum: [queued, processing, completed, failed, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        result:
+          type: object
+          nullable: true
+          properties:
+            textLength:
+              type: integer
+            pages:
+              type: integer
+            tables:
+              type: integer
+            documentId:
+              type: string
+
+    QueueStats:
+      type: object
+      properties:
+        queued:
+          type: integer
+          description: Number of jobs waiting
+        processing:
+          type: integer
+          description: Number of jobs currently processing
+        completed:
+          type: integer
+          description: Total completed jobs
+        failed:
+          type: integer
+          description: Total failed jobs
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: FileProcessAgent
+        version:
+          type: string
+          example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+
+    ReadinessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ready, not ready]
+        service:
+          type: string
+        dependencies:
+          type: object
+          properties:
+            postgres:
+              $ref: '#/components/schemas/DependencyStatus'
+            redis:
+              $ref: '#/components/schemas/DependencyStatus'
+        timestamp:
+          type: string
+          format: date-time
+
+    DetailedHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        dependencies:
+          type: object
+          properties:
+            postgres:
+              $ref: '#/components/schemas/DependencyStatus'
+            redis:
+              $ref: '#/components/schemas/DependencyStatus'
+            graphrag:
+              $ref: '#/components/schemas/DependencyStatus'
+            queue:
+              type: object
+              properties:
+                status:
+                  type: string
+                stats:
+                  $ref: '#/components/schemas/QueueStats'
+        config:
+          type: object
+          properties:
+            maxFileSize:
+              type: string
+              example: 5.00GB
+            chunkSize:
+              type: string
+              example: 64KB
+        timestamp:
+          type: string
+          format: date-time
+
+    DependencyStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, error, unavailable]
+        latency:
+          type: string
+          example: 45ms
+        error:
+          type: string
+          nullable: true
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: string
+                description: Only present in development mode
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Note: Security is not currently enforced but can be added with JWT tokens
+# security:
+#   - bearerAuth: []
