@@ -20,7 +20,7 @@
   "author": "Adverant AI",
   "license": "Apache-2.0",
   "dependencies": {
-    "uuid": "^9.0.1",
+    "uuid": "^13.0.0",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1"
   },
