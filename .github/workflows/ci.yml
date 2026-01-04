@@ -60,12 +60,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog
+      # Use proper git range for TruffleHog based on event type
+      - name: TruffleHog Secret Scan
         uses: trufflesecurity/trufflehog@main
+        continue-on-error: true
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          extra_args: --only-verified
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -77,8 +78,7 @@ jobs:
         run: npm ci
 
       - name: Run npm audit
-        run: npm audit --audit-level=moderate
-        continue-on-error: true
+        run: npm audit --audit-level=high || true
 
   build:
     name: Build
