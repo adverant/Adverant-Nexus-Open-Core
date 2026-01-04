@@ -11,6 +11,7 @@ import { logger } from './utils/logger.js';
 import { setupGlobalErrorHandlers } from './utils/error-handler.js';
 import { configManager } from './core/config/config-manager.js';
 import { createComputeCommand } from './commands/compute/index.js';
+import { createRepoCommand } from './commands/repo/index.js';
 import type { OutputFormat } from './types/output.js';
 
 export interface GlobalOptions {
@@ -106,6 +107,9 @@ export async function setupCLI(): Promise<Command> {
 export function registerCommands(program: Command): void {
   // Register compute command (local ML compute management)
   program.addCommand(createComputeCommand());
+
+  // Register repo command (repository analysis)
+  program.addCommand(createRepoCommand());
 
   // Version command
   program
