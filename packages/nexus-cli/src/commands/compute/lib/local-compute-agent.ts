@@ -77,7 +77,7 @@ export class LocalComputeAgent extends EventEmitter<ComputeEvents> {
 
     this.config = {
       name: config.name || os.hostname(),
-      gatewayUrl: config.gatewayUrl || 'https://api.adverant.ai/hpc',
+      gatewayUrl: config.gatewayUrl || process.env.NEXUS_HPC_GATEWAY_URL || process.env.NEXUS_API_URL || 'http://localhost:9000',
       maxMemoryPercent: config.maxMemoryPercent ?? 75,
       allowRemoteJobs: config.allowRemoteJobs ?? false,
       idleTimeoutMinutes: config.idleTimeoutMinutes ?? 30,

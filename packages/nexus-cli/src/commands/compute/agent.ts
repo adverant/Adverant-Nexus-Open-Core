@@ -32,7 +32,11 @@ export function createComputeAgentCommand(): Command {
   command
     .command('start')
     .description('Start the local compute agent')
-    .option('-g, --gateway <url>', 'HPC gateway URL', 'https://api.adverant.ai/hpc')
+    .option(
+      '-g, --gateway <url>',
+      'HPC gateway URL',
+      process.env.NEXUS_HPC_GATEWAY_URL || process.env.NEXUS_API_URL || 'http://localhost:9000'
+    )
     .option('-n, --name <name>', 'Custom name for this compute node')
     .option('--max-memory <percent>', 'Maximum memory usage percentage', '75')
     .option('--allow-remote-jobs', 'Allow remote job submissions', false)
@@ -61,7 +65,7 @@ export function createComputeAgentCommand(): Command {
         // Create and start agent
         const agent = new LocalComputeAgent({
           name: agentName,
-          gatewayUrl: options.gateway || 'https://api.adverant.ai/hpc',
+          gatewayUrl: options.gateway || process.env.NEXUS_HPC_GATEWAY_URL || process.env.NEXUS_API_URL || 'http://localhost:9000',
           maxMemoryPercent: parseInt(String(options.maxMemory ?? 75), 10),
           allowRemoteJobs: options.allowRemoteJobs || false,
           apiPort: parseInt(String(options.port ?? 9099), 10),
