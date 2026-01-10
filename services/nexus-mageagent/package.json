@@ -50,7 +50,7 @@
     "@opentelemetry/sdk-trace-base": "^1.25.1",
     "@opentelemetry/semantic-conventions": "^1.25.1",
     "@qdrant/js-client-rest": "^1.9.0",
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.6.8",
     "axios-retry": "^4.1.0",
