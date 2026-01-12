@@ -93,7 +93,7 @@
     "js-yaml": "^4.1.0",
     "listr2": "^8.0.1",
     "lodash-es": "^4.17.21",
-    "log-symbols": "^6.0.0",
+    "log-symbols": "^7.0.1",
     "nanospinner": "^1.1.0",
     "node-fetch": "^3.3.2",
     "open": "^10.0.3",
