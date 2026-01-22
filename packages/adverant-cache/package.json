@@ -1,0 +1,33 @@
+{
+  "name": "@adverant/cache",
+  "version": "1.0.0",
+  "description": "Redis-backed distributed caching for Nexus stack services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "cache",
+    "redis",
+    "distributed",
+    "nexus",
+    "query-cache"
+  ],
+  "author": "Adverant AI",
+  "license": "ISC",
+  "dependencies": {
+    "@adverant/logger": "file:../adverant-logger",
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

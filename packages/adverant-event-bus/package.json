@@ -1,0 +1,44 @@
+{
+  "name": "@adverant/event-bus",
+  "version": "1.0.0",
+  "description": "Unified event bus for Nexus stack - queues, events, WebSockets, pub/sub",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "nexus",
+    "event-bus",
+    "queue",
+    "websocket",
+    "pubsub",
+    "bull",
+    "socket.io"
+  ],
+  "author": "Adverant AI",
+  "license": "ISC",
+  "dependencies": {
+    "@adverant/logger": "file:../adverant-logger",
+    "@adverant/errors": "file:../adverant-errors",
+    "@adverant/config": "file:../adverant-config",
+    "bull": "^4.12.2",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "ioredis": "^5.3.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.8",
+    "@types/bull": "^4.10.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

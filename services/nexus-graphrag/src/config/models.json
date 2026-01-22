@@ -1,0 +1,89 @@
+{
+  "voyageAI": {
+    "embeddings": {
+      "general": {
+        "model": "voyage-3",
+        "dimensions": 1024,
+        "description": "Best general-purpose embedding model"
+      },
+      "code": {
+        "model": "voyage-code-3",
+        "dimensions": 1024,
+        "description": "Optimized for code understanding"
+      },
+      "finance": {
+        "model": "voyage-finance-2",
+        "dimensions": 1024,
+        "description": "Specialized for financial documents"
+      },
+      "law": {
+        "model": "voyage-law-2",
+        "dimensions": 1024,
+        "description": "Specialized for legal documents"
+      }
+    },
+    "reranking": {
+      "default": {
+        "model": "rerank-2.5",
+        "description": "Latest reranking model"
+      }
+    }
+  },
+  "openRouter": {
+    "classification": {
+      "primary": {
+        "model": "anthropic/claude-3.5-sonnet",
+        "description": "Best for text understanding and vision",
+        "supportsVision": true,
+        "maxTokens": 200000
+      },
+      "code": {
+        "model": "deepseek/deepseek-coder",
+        "description": "Specialized for code analysis",
+        "supportsVision": false,
+        "maxTokens": 32000
+      },
+      "fast": {
+        "model": "anthropic/claude-sonnet-4.5",
+        "description": "Fast and high-quality classification",
+        "supportsVision": true,
+        "maxTokens": 200000
+      },
+      "fallback": {
+        "model": "openai/gpt-4-turbo",
+        "description": "Fallback model if primary fails",
+        "supportsVision": true,
+        "maxTokens": 128000
+      }
+    },
+    "extraction": {
+      "primary": {
+        "model": "anthropic/claude-3.5-sonnet",
+        "description": "Best for information extraction"
+      },
+      "structured": {
+        "model": "openai/gpt-4-turbo",
+        "description": "Good for structured data extraction"
+      }
+    },
+    "summarization": {
+      "primary": {
+        "model": "anthropic/claude-3.5-sonnet",
+        "description": "Best for summarization tasks"
+      },
+      "long": {
+        "model": "anthropic/claude-3-opus",
+        "description": "For very long documents",
+        "maxTokens": 200000
+      }
+    }
+  },
+  "modelSelection": {
+    "autoSelect": true,
+    "preferenceOrder": ["anthropic", "openai", "google", "meta"],
+    "costOptimization": false,
+    "qualityThreshold": 0.8
+  },
+  "lastUpdated": "2025-09-23T00:00:00Z",
+  "version": "1.0.0"
+}

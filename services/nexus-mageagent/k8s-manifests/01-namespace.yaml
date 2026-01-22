@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mage-agent
+  labels:
+    name: mage-agent
+    istio-injection: enabled
+    adverant.ai/service: mageagent
+    adverant.ai/environment: production
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mageagent
+  namespace: mage-agent
+  labels:
+    app: mageagent
+    adverant.ai/service: mageagent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mageagent-role
+  namespace: mage-agent
+  labels:
+    app: mageagent
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mageagent-rolebinding
+  namespace: mage-agent
+  labels:
+    app: mageagent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mageagent-role
+subjects:
+  - kind: ServiceAccount
+    name: mageagent
+    namespace: mage-agent

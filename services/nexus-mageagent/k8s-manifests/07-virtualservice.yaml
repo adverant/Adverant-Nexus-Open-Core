@@ -1,0 +1,109 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: mageagent
+  namespace: mage-agent
+  labels:
+    app: mageagent
+    adverant.ai/service: mageagent
+spec:
+  hosts:
+    - graphrag.adverant.ai
+  gateways:
+    - istio-system/graphrag-gateway  # Dedicated GraphRAG gateway
+  http:
+    # WebSocket endpoint
+    - match:
+        - uri:
+            prefix: "/mageagent/ws"
+        - headers:
+            upgrade:
+              exact: websocket
+      route:
+        - destination:
+            host: mageagent.mage-agent.svc.cluster.local
+            port:
+              number: 8081
+      timeout: 0s  # Disable timeout for WebSocket
+      websocketUpgrade: true
+
+    # API endpoints
+    - match:
+        - uri:
+            prefix: "/mageagent/"
+      rewrite:
+        uri: "/"  # Remove /mageagent prefix when forwarding
+      route:
+        - destination:
+            host: mageagent.mage-agent.svc.cluster.local
+            port:
+              number: 8080
+          weight: 100
+      timeout: 300s  # 5 minute timeout for long-running agent tasks
+      retryPolicy:
+        attempts: 3
+        perTryTimeout: 30s
+        retryOn: "5xx,reset,connect-failure,refused-stream"
+        retryRemoteLocalities: true
+      corsPolicy:
+        allowOrigins:
+          - exact: "https://graphrag.adverant.ai"
+          - exact: "http://localhost:3000"  # For local development
+        allowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        allowHeaders:
+          - content-type
+          - authorization
+          - x-request-id
+          - x-trace-id
+        allowCredentials: true
+        maxAge: "24h"
+
+---
+# DestinationRule for circuit breaking and connection pooling
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: mageagent
+  namespace: mage-agent
+  labels:
+    app: mageagent
+    adverant.ai/service: mageagent
+spec:
+  host: mageagent.mage-agent.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 1
+        h2UpgradePolicy: UPGRADE  # Automatically upgrade to HTTP/2
+    outlierDetection:
+      consecutiveErrors: 10
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+      splitExternalLocalOriginErrors: true
+
+---
+# PeerAuthentication for mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: mageagent
+  namespace: mage-agent
+  labels:
+    app: mageagent
+spec:
+  selector:
+    matchLabels:
+      app: mageagent
+  mtls:
+    mode: STRICT

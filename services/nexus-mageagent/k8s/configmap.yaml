@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mageagent-config
+  namespace: mage-agent
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  PORT: "8080"
+  # Database configurations
+  POSTGRES_HOST: "postgres.vibe-data.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DATABASE: "vibe_platform"
+  POSTGRES_USER: "postgres"
+  REDIS_HOST: "redis.vibe-data.svc.cluster.local"
+  REDIS_PORT: "6379"
+  NEO4J_HOST: "neo4j.vibe-data.svc.cluster.local"
+  NEO4J_PORT: "7687"
+  QDRANT_HOST: "qdrant.vibe-data.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  # GraphRAG configuration
+  GRAPHRAG_ENDPOINT: "http://graphrag.vibe-system.svc.cluster.local:8080"
+  # OpenRouter configuration
+  OPENROUTER_BASE_URL: "https://openrouter.ai/api/v1"
+  # WebSocket configuration
+  WS_PATH: "/mageagent/ws"
+  # CORS configuration
+  ALLOWED_ORIGINS: "https://graphrag.adverant.ai,https://vibe-platform.adverant.ai"

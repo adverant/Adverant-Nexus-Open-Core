@@ -1,0 +1,872 @@
+/**
+ * Production-Grade OpenRouter Client for Go
+ *
+ * Implements the same robust patterns as MageAgent's TypeScript client:
+ * - Circuit breaker for fault tolerance
+ * - Exponential backoff retry logic
+ * - Connection pooling with proper cleanup
+ * - Model caching and intelligent selection
+ * - Free model filtering (CRITICAL requirement)
+ * - Comprehensive error handling with full context
+ *
+ * This client is specifically optimized for vision/OCR tasks with
+ * GPT-4 Vision and Claude-3 Opus support.
+ */
+
+package clients
+
+import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/cenkalti/backoff/v4"
+	"github.com/sony/gobreaker"
+)
+
+// OpenRouterModel represents a model available on OpenRouter
+type OpenRouterModel struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description,omitempty"`
+	Pricing     Pricing `json:"pricing"`
+	ContextLength int   `json:"context_length"`
+	Architecture  Architecture `json:"architecture"`
+	TopProvider   TopProvider  `json:"top_provider,omitempty"`
+	PerRequestLimits *RequestLimits `json:"per_request_limits,omitempty"`
+}
+
+// Pricing represents model pricing information
+type Pricing struct {
+	Prompt     float64 `json:"prompt"`
+	Completion float64 `json:"completion"`
+	Image      float64 `json:"image,omitempty"`
+}
+
+// Architecture represents model architecture details
+type Architecture struct {
+	Modality     string `json:"modality"`
+	Tokenizer    string `json:"tokenizer"`
+	InstructType string `json:"instruct_type,omitempty"`
+}
+
+// TopProvider represents provider-specific details
+type TopProvider struct {
+	ContextLength       int  `json:"context_length,omitempty"`
+	MaxCompletionTokens int  `json:"max_completion_tokens,omitempty"`
+	IsModerated         bool `json:"is_moderated,omitempty"`
+}
+
+// RequestLimits represents per-request token limits
+type RequestLimits struct {
+	PromptTokens     int `json:"prompt_tokens,omitempty"`
+	CompletionTokens int `json:"completion_tokens,omitempty"`
+}
+
+// Message represents a chat message
+type Message struct {
+	Role    string      `json:"role"`
+	Content interface{} `json:"content"` // Can be string or []ContentPart for vision
+}
+
+// ContentPart represents a part of a multi-modal message
+type ContentPart struct {
+	Type     string    `json:"type"`      // "text" or "image_url"
+	Text     string    `json:"text,omitempty"`
+	ImageURL *ImageURL `json:"image_url,omitempty"`
+}
+
+// ImageURL represents an image in a message
+type ImageURL struct {
+	URL    string `json:"url"`    // Can be base64 data URL
+	Detail string `json:"detail,omitempty"` // "low", "high", or "auto"
+}
+
+// CompletionRequest represents a completion API request
+type CompletionRequest struct {
+	Model            string      `json:"model"`
+	Messages         []Message   `json:"messages"`
+	MaxTokens        int         `json:"max_tokens,omitempty"`
+	Temperature      float64     `json:"temperature,omitempty"`
+	TopP             float64     `json:"top_p,omitempty"`
+	Stream           bool        `json:"stream,omitempty"`
+	Stop             []string    `json:"stop,omitempty"`
+	FrequencyPenalty float64     `json:"frequency_penalty,omitempty"`
+	PresencePenalty  float64     `json:"presence_penalty,omitempty"`
+	RepetitionPenalty float64    `json:"repetition_penalty,omitempty"`
+	Seed             int         `json:"seed,omitempty"`
+	ResponseFormat   *ResponseFormat `json:"response_format,omitempty"`
+	// OpenRouter specific
+	Transforms []string `json:"transforms,omitempty"`
+	Models     []string `json:"models,omitempty"`     // Fallback models
+	Route      string   `json:"route,omitempty"`      // "fallback" or "weighted"
+}
+
+// ResponseFormat specifies the format of the response
+type ResponseFormat struct {
+	Type string `json:"type"` // "json_object"
+}
+
+// CompletionResponse represents a completion API response
+type CompletionResponse struct {
+	ID      string   `json:"id"`
+	Choices []Choice `json:"choices"`
+	Model   string   `json:"model"`
+	Usage   Usage    `json:"usage"`
+}
+
+// Choice represents a completion choice
+type Choice struct {
+	Message      Message  `json:"message"`
+	FinishReason string   `json:"finish_reason"`
+}
+
+// Usage represents token usage statistics
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+// ModelsResponse represents the response from /models endpoint
+type ModelsResponse struct {
+	Data []OpenRouterModel `json:"data"`
+}
+
+// ErrorResponse represents an API error response
+type ErrorResponse struct {
+	Error struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+		Code    string `json:"code"`
+	} `json:"error"`
+}
+
+// OpenRouterClient is a production-grade client for OpenRouter API
+type OpenRouterClient struct {
+	apiKey         string
+	baseURL        string
+	httpClient     *http.Client
+	circuitBreaker *gobreaker.CircuitBreaker
+	modelCache     map[string]*OpenRouterModel
+	modelCacheMu   sync.RWMutex
+	cacheExpiry    time.Time
+	cacheTTL       time.Duration
+	filterFreeModels bool
+}
+
+// ClientOptions contains options for creating a new client
+type ClientOptions struct {
+	BaseURL          string
+	Timeout          time.Duration
+	MaxIdleConns     int
+	MaxConnsPerHost  int
+	FilterFreeModels bool
+}
+
+// DefaultClientOptions returns default client options
+func DefaultClientOptions() *ClientOptions {
+	return &ClientOptions{
+		BaseURL:          "https://openrouter.ai/api/v1",
+		Timeout:          30 * time.Minute, // Aligned with MageAgent
+		MaxIdleConns:     50,
+		MaxConnsPerHost:  10,
+		FilterFreeModels: true, // CRITICAL: Always filter free models by default
+	}
+}
+
+// NewOpenRouterClient creates a new OpenRouter client
+func NewOpenRouterClient(apiKey string, opts *ClientOptions) (*OpenRouterClient, error) {
+	if apiKey == "" {
+		return nil, fmt.Errorf(
+			"CRITICAL: OpenRouter API key is required but not provided.\n" +
+			"Action Required: Set valid OPENROUTER_API_KEY environment variable\n" +
+			"Documentation: https://openrouter.ai/keys",
+		)
+	}
+
+	if opts == nil {
+		opts = DefaultClientOptions()
+	}
+
+	// Create HTTP transport with connection pooling
+	transport := &http.Transport{
+		MaxIdleConns:        opts.MaxIdleConns,
+		MaxConnsPerHost:     opts.MaxConnsPerHost,
+		MaxIdleConnsPerHost: opts.MaxConnsPerHost,
+		IdleConnTimeout:     30 * time.Second,
+		DisableCompression:  false,
+		DisableKeepAlives:   false,
+	}
+
+	// Create HTTP client
+	httpClient := &http.Client{
+		Transport: transport,
+		Timeout:   opts.Timeout,
+	}
+
+	// Configure circuit breaker (matching MageAgent settings)
+	cbSettings := gobreaker.Settings{
+		Name:        "OpenRouterAPI",
+		MaxRequests: 10,                      // Volume threshold
+		Interval:    10 * time.Second,        // Evaluation interval
+		Timeout:     30 * time.Second,        // Time before half-open
+		ReadyToTrip: func(counts gobreaker.Counts) bool {
+			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+			return counts.Requests >= 10 && failureRatio >= 0.5 // 50% error threshold
+		},
+		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+			log.Printf("OpenRouter circuit breaker state change: %s -> %s", from, to)
+		},
+	}
+
+	client := &OpenRouterClient{
+		apiKey:           apiKey,
+		baseURL:          opts.BaseURL,
+		httpClient:       httpClient,
+		circuitBreaker:   gobreaker.NewCircuitBreaker(cbSettings),
+		modelCache:       make(map[string]*OpenRouterModel),
+		cacheTTL:         1 * time.Hour,
+		filterFreeModels: opts.FilterFreeModels,
+	}
+
+	return client, nil
+}
+
+// ListAvailableModels fetches all available models from OpenRouter
+func (c *OpenRouterClient) ListAvailableModels(ctx context.Context, includeFreeModels bool) ([]OpenRouterModel, error) {
+	// Check cache
+	c.modelCacheMu.RLock()
+	if time.Now().Before(c.cacheExpiry) && len(c.modelCache) > 0 {
+		models := make([]OpenRouterModel, 0, len(c.modelCache))
+		for _, model := range c.modelCache {
+			if !c.filterFreeModels || includeFreeModels || !c.isFreeModel(model) {
+				models = append(models, *model)
+			}
+		}
+		c.modelCacheMu.RUnlock()
+		return models, nil
+	}
+	c.modelCacheMu.RUnlock()
+
+	// Fetch models with circuit breaker
+	result, err := c.circuitBreaker.Execute(func() (interface{}, error) {
+		return c.fetchModels(ctx)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	models := result.([]OpenRouterModel)
+
+	// Update cache
+	c.modelCacheMu.Lock()
+	c.modelCache = make(map[string]*OpenRouterModel)
+	for i := range models {
+		c.modelCache[models[i].ID] = &models[i]
+	}
+	c.cacheExpiry = time.Now().Add(c.cacheTTL)
+	c.modelCacheMu.Unlock()
+
+	// Filter free models if required
+	if c.filterFreeModels && !includeFreeModels {
+		filtered := make([]OpenRouterModel, 0)
+		for _, model := range models {
+			if !c.isFreeModel(&model) {
+				filtered = append(filtered, model)
+			}
+		}
+		log.Printf("Filtered out %d free models (policy: no free models allowed)", len(models)-len(filtered))
+		return filtered, nil
+	}
+
+	return models, nil
+}
+
+// fetchModels makes the actual API call to fetch models
+func (c *OpenRouterClient) fetchModels(ctx context.Context) ([]OpenRouterModel, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/models", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	c.setHeaders(req)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch models: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, c.handleErrorResponse(resp)
+	}
+
+	var modelsResp ModelsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&modelsResp); err != nil {
+		return nil, fmt.Errorf("failed to decode models response: %w", err)
+	}
+
+	log.Printf("Loaded %d models from OpenRouter", len(modelsResp.Data))
+	return modelsResp.Data, nil
+}
+
+// CreateCompletion creates a completion with the OpenRouter API
+func (c *OpenRouterClient) CreateCompletion(ctx context.Context, request *CompletionRequest) (*CompletionResponse, error) {
+	// Validate model is not free
+	if c.filterFreeModels {
+		c.modelCacheMu.RLock()
+		if model, exists := c.modelCache[request.Model]; exists && c.isFreeModel(model) {
+			c.modelCacheMu.RUnlock()
+			return nil, fmt.Errorf(
+				"CRITICAL: Attempted to use free model '%s'. "+
+				"Free models are not allowed by policy. "+
+				"Please select a paid model.", request.Model,
+			)
+		}
+		c.modelCacheMu.RUnlock()
+
+		// Also check fallback models
+		if len(request.Models) > 0 {
+			filteredModels := make([]string, 0)
+			for _, fallbackModel := range request.Models {
+				c.modelCacheMu.RLock()
+				if model, exists := c.modelCache[fallbackModel]; !exists || !c.isFreeModel(model) {
+					filteredModels = append(filteredModels, fallbackModel)
+				} else {
+					log.Printf("Removing free fallback model from chain: %s", fallbackModel)
+				}
+				c.modelCacheMu.RUnlock()
+			}
+			request.Models = filteredModels
+		}
+	}
+
+	// Execute with circuit breaker and retry
+	result, err := c.circuitBreaker.Execute(func() (interface{}, error) {
+		return c.createCompletionWithRetry(ctx, request)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result.(*CompletionResponse), nil
+}
+
+// createCompletionWithRetry implements exponential backoff retry
+func (c *OpenRouterClient) createCompletionWithRetry(ctx context.Context, request *CompletionRequest) (*CompletionResponse, error) {
+	var lastErr error
+
+	// Configure exponential backoff
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.InitialInterval = 1 * time.Second
+	expBackoff.MaxInterval = 30 * time.Second
+	expBackoff.MaxElapsedTime = 2 * time.Minute
+	expBackoff.Multiplier = 2.0
+
+	backoffContext := backoff.WithContext(expBackoff, ctx)
+
+	operation := func() error {
+		resp, err := c.makeCompletionRequest(ctx, request)
+		if err != nil {
+			lastErr = err
+			// Check if error is retryable
+			if isRetryableError(err) {
+				return err // Will retry
+			}
+			return backoff.Permanent(err) // Won't retry
+		}
+
+		// Success - store response for return
+		lastErr = nil
+		result := resp
+		_ = result // Store in closure
+		return nil
+	}
+
+	if err := backoff.Retry(operation, backoffContext); err != nil {
+		if lastErr != nil {
+			return nil, lastErr
+		}
+		return nil, err
+	}
+
+	// Make final request after successful retries
+	return c.makeCompletionRequest(ctx, request)
+}
+
+// makeCompletionRequest makes the actual API call
+func (c *OpenRouterClient) makeCompletionRequest(ctx context.Context, request *CompletionRequest) (*CompletionResponse, error) {
+	startTime := time.Now()
+
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/chat/completions", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	c.setHeaders(req)
+	req.Header.Set("Content-Type", "application/json")
+
+	log.Printf("OpenRouter completion request: model=%s, messageCount=%d, maxTokens=%d",
+		request.Model, len(request.Messages), request.MaxTokens)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, c.handleErrorResponse(resp)
+	}
+
+	var completionResp CompletionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&completionResp); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Printf("OpenRouter completion successful: model=%s, actualModel=%s, usage=%+v, latency=%v",
+		request.Model, completionResp.Model, completionResp.Usage, latency)
+
+	return &completionResp, nil
+}
+
+// CreateVisionCompletion creates a completion for vision/OCR tasks
+func (c *OpenRouterClient) CreateVisionCompletion(ctx context.Context, imageData []byte, prompt string, model string) (*CompletionResponse, error) {
+	// Encode image as base64
+	base64Image := base64.StdEncoding.EncodeToString(imageData)
+	dataURL := fmt.Sprintf("data:image/jpeg;base64,%s", base64Image)
+
+	// Create multi-modal message
+	request := &CompletionRequest{
+		Model: model,
+		Messages: []Message{
+			{
+				Role: "user",
+				Content: []ContentPart{
+					{
+						Type: "text",
+						Text: prompt,
+					},
+					{
+						Type: "image_url",
+						ImageURL: &ImageURL{
+							URL:    dataURL,
+							Detail: "high", // High detail for OCR
+						},
+					},
+				},
+			},
+		},
+		MaxTokens:   4096, // Sufficient for OCR output
+		Temperature: 0.1,  // Low temperature for accuracy
+	}
+
+	return c.CreateCompletion(ctx, request)
+}
+
+// setHeaders sets common headers for all requests
+func (c *OpenRouterClient) setHeaders(req *http.Request) {
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("HTTP-Referer", "https://adverant.ai")
+	req.Header.Set("X-Title", "FileProcessAgent OCR System")
+}
+
+// handleErrorResponse processes error responses from the API
+func (c *OpenRouterClient) handleErrorResponse(resp *http.Response) error {
+	body, _ := io.ReadAll(resp.Body)
+
+	var errorResp ErrorResponse
+	if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error.Message != "" {
+		return fmt.Errorf(
+			"OpenRouter API Error:\n"+
+			"Status: %d %s\n"+
+			"Type: %s\n"+
+			"Code: %s\n"+
+			"Message: %s\n"+
+			"Action Required: Check API key and credits at https://openrouter.ai/activity",
+			resp.StatusCode, resp.Status,
+			errorResp.Error.Type,
+			errorResp.Error.Code,
+			errorResp.Error.Message,
+		)
+	}
+
+	return fmt.Errorf(
+		"OpenRouter API Error:\n"+
+		"Status: %d %s\n"+
+		"Body: %s\n"+
+		"Action Required: Check API key and credits",
+		resp.StatusCode, resp.Status, string(body),
+	)
+}
+
+// isFreeModel checks if a model is free (should be filtered out)
+func (c *OpenRouterClient) isFreeModel(model *OpenRouterModel) bool {
+	// Check if model ID contains ':free' suffix
+	if strings.Contains(model.ID, ":free") {
+		return true
+	}
+
+	// Check if pricing is exactly zero for both prompt and completion
+	if model.Pricing.Prompt == 0 && model.Pricing.Completion == 0 {
+		return true
+	}
+
+	// Additional checks for known free model patterns
+	id := strings.ToLower(model.ID)
+	freePatterns := []string{"free", "-free-", "free-"}
+	for _, pattern := range freePatterns {
+		if strings.Contains(id, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isRetryableError determines if an error should trigger a retry
+func isRetryableError(err error) bool {
+	errStr := err.Error()
+	retryablePatterns := []string{
+		"429", // Rate limit
+		"502", // Bad gateway
+		"503", // Service unavailable
+		"504", // Gateway timeout
+		"timeout",
+		"connection reset",
+		"connection refused",
+	}
+
+	for _, pattern := range retryablePatterns {
+		if strings.Contains(strings.ToLower(errStr), pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// TestConnection tests the connection to OpenRouter API
+func (c *OpenRouterClient) TestConnection(ctx context.Context) error {
+	models, err := c.ListAvailableModels(ctx, false)
+	if err != nil {
+		return fmt.Errorf("connection test failed: %w", err)
+	}
+
+	if len(models) == 0 {
+		return fmt.Errorf("no models available - API key may be invalid or have no permissions")
+	}
+
+	log.Printf("OpenRouter connection verified: %d models available", len(models))
+	return nil
+}
+
+// EstimateCost estimates the cost for a completion
+func (c *OpenRouterClient) EstimateCost(model string, promptTokens, completionTokens int) float64 {
+	c.modelCacheMu.RLock()
+	modelInfo, exists := c.modelCache[model]
+	c.modelCacheMu.RUnlock()
+
+	if !exists || modelInfo == nil {
+		return 0
+	}
+
+	promptCost := (float64(promptTokens) / 1000000) * modelInfo.Pricing.Prompt
+	completionCost := (float64(completionTokens) / 1000000) * modelInfo.Pricing.Completion
+
+	return promptCost + completionCost
+}
+
+// ModelScore represents a model's score for a specific task
+type ModelScore struct {
+	Model   OpenRouterModel
+	Score   float64
+	Reasons []string
+}
+
+// SelectBestVisionModel dynamically selects the best available vision model
+// This uses pattern-based scoring similar to GraphRAG's approach, NOT hardcoded models
+func (c *OpenRouterClient) SelectBestVisionModel(ctx context.Context, preferHighAccuracy bool) (string, error) {
+	models, err := c.ListAvailableModels(ctx, false)
+	if err != nil {
+		return "", err
+	}
+
+	// Filter to vision-capable models only
+	visionModels := c.filterVisionCapableModels(models)
+	if len(visionModels) == 0 {
+		return "", fmt.Errorf("no vision-capable models available in OpenRouter")
+	}
+
+	// Score models based on dynamic criteria
+	scored := c.scoreModelsForOCR(visionModels, preferHighAccuracy)
+
+	// Sort by score descending
+	sortModelsByScore(scored)
+
+	if len(scored) == 0 || scored[0].Score == 0 {
+		return "", fmt.Errorf("no suitable models found for OCR task")
+	}
+
+	// Log top 3 candidates for transparency
+	log.Printf("Top OCR model candidates (preferHighAccuracy=%v):", preferHighAccuracy)
+	for i := 0; i < 3 && i < len(scored); i++ {
+		log.Printf("  %d. %s (score=%.2f, cost=%.6f/1K tokens, reasons=%v)",
+			i+1, scored[i].Model.ID, scored[i].Score,
+			(scored[i].Model.Pricing.Prompt+scored[i].Model.Pricing.Completion)/2/1000,
+			scored[i].Reasons)
+	}
+
+	selectedModel := scored[0].Model.ID
+	log.Printf("Selected vision model: %s (score=%.2f)", selectedModel, scored[0].Score)
+	return selectedModel, nil
+}
+
+// filterVisionCapableModels returns only models that support vision/images
+func (c *OpenRouterClient) filterVisionCapableModels(models []OpenRouterModel) []OpenRouterModel {
+	var visionModels []OpenRouterModel
+
+	for _, model := range models {
+		// Check multiple indicators for vision capability
+		modality := strings.ToLower(model.Architecture.Modality)
+		modelID := strings.ToLower(model.ID)
+		modelName := strings.ToLower(model.Name)
+		description := strings.ToLower(model.Description)
+
+		// Dynamic vision detection - no hardcoded models!
+		hasVisionCapability := false
+
+		// Check architecture modality
+		if strings.Contains(modality, "multi") ||
+		   strings.Contains(modality, "image") ||
+		   strings.Contains(modality, "vision") {
+			hasVisionCapability = true
+		}
+
+		// Check model identifiers for vision indicators
+		visionKeywords := []string{"vision", "image", "multi", "vlm", "visual", "ocr"}
+		for _, keyword := range visionKeywords {
+			if strings.Contains(modelID, keyword) ||
+			   strings.Contains(modelName, keyword) ||
+			   strings.Contains(description, keyword) {
+				hasVisionCapability = true
+				break
+			}
+		}
+
+		// No hardcoded patterns! Everything is discovered dynamically
+
+		if hasVisionCapability {
+			visionModels = append(visionModels, model)
+		}
+	}
+
+	return visionModels
+}
+
+// scoreModelsForOCR scores models based on their suitability for OCR tasks
+// This is FULLY DYNAMIC - no hardcoded model names or patterns!
+func (c *OpenRouterClient) scoreModelsForOCR(models []OpenRouterModel, preferHighAccuracy bool) []ModelScore {
+	var scores []ModelScore
+
+	// Calculate dynamic percentiles for context length and cost
+	contextLengths := make([]int, len(models))
+	costs := make([]float64, len(models))
+	for i, model := range models {
+		contextLengths[i] = model.ContextLength
+		costs[i] = (model.Pricing.Prompt + model.Pricing.Completion) / 2
+	}
+
+	// Get percentiles for dynamic scoring
+	contextP90 := getPercentile(contextLengths, 90)
+	contextP75 := getPercentile(contextLengths, 75)
+	contextP50 := getPercentile(contextLengths, 50)
+
+	costP10 := getPercentileFloat(costs, 10) // 10th percentile = cheapest 10%
+	costP25 := getPercentileFloat(costs, 25)
+	costP50 := getPercentileFloat(costs, 50)
+
+	for _, model := range models {
+		score := ModelScore{
+			Model:   model,
+			Score:   100, // Start with base score
+			Reasons: []string{},
+		}
+
+		// Dynamic context length scoring based on actual distribution
+		if model.ContextLength >= contextP90 {
+			score.Score += 30
+			score.Reasons = append(score.Reasons, "top_10%_context")
+		} else if model.ContextLength >= contextP75 {
+			score.Score += 20
+			score.Reasons = append(score.Reasons, "top_25%_context")
+		} else if model.ContextLength >= contextP50 {
+			score.Score += 10
+			score.Reasons = append(score.Reasons, "above_median_context")
+		}
+
+		// Dynamic cost scoring based on actual price distribution
+		avgCost := (model.Pricing.Prompt + model.Pricing.Completion) / 2
+		if avgCost > 0 && avgCost <= costP10 {
+			score.Score += 30
+			score.Reasons = append(score.Reasons, "top_10%_cheapest")
+		} else if avgCost <= costP25 {
+			score.Score += 20
+			score.Reasons = append(score.Reasons, "top_25%_cheapest")
+		} else if avgCost <= costP50 {
+			score.Score += 10
+			score.Reasons = append(score.Reasons, "below_median_cost")
+		}
+
+		// Score based on max completion tokens (important for OCR)
+		if model.TopProvider.MaxCompletionTokens > 0 {
+			// Normalize to 0-30 scale based on tokens
+			tokenScore := float64(model.TopProvider.MaxCompletionTokens) / 10000.0
+			if tokenScore > 30 {
+				tokenScore = 30
+			}
+			score.Score += tokenScore
+			if model.TopProvider.MaxCompletionTokens >= 4000 {
+				score.Reasons = append(score.Reasons, "high_output_capacity")
+			}
+		}
+
+		// Check if model description indicates vision specialization
+		description := strings.ToLower(model.Description)
+		if strings.Contains(description, "vision") ||
+		   strings.Contains(description, "image") ||
+		   strings.Contains(description, "multimodal") ||
+		   strings.Contains(description, "ocr") {
+			score.Score += 20
+			score.Reasons = append(score.Reasons, "vision_optimized_description")
+		}
+
+		// Dynamic preference adjustment
+		if preferHighAccuracy {
+			// Prefer expensive models (they tend to be better)
+			if avgCost > costP50 {
+				score.Score *= 1.2
+				score.Reasons = append(score.Reasons, "premium_tier")
+			}
+			// Prefer larger context (can handle bigger documents)
+			if model.ContextLength >= contextP75 {
+				score.Score *= 1.1
+			}
+		} else {
+			// Prefer cheaper, faster models
+			if avgCost <= costP25 {
+				score.Score *= 1.3
+				score.Reasons = append(score.Reasons, "speed_optimized")
+			}
+		}
+
+		// Only include models with reasonable scores
+		if score.Score > 50 {
+			scores = append(scores, score)
+		}
+	}
+
+	return scores
+}
+
+// getPercentile calculates the Nth percentile of int slice
+func getPercentile(values []int, percentile float64) int {
+	if len(values) == 0 {
+		return 0
+	}
+
+	// Sort values
+	sorted := make([]int, len(values))
+	copy(sorted, values)
+	for i := 0; i < len(sorted)-1; i++ {
+		for j := 0; j < len(sorted)-i-1; j++ {
+			if sorted[j] > sorted[j+1] {
+				sorted[j], sorted[j+1] = sorted[j+1], sorted[j]
+			}
+		}
+	}
+
+	index := int(float64(len(sorted)-1) * percentile / 100.0)
+	return sorted[index]
+}
+
+// getPercentileFloat calculates the Nth percentile of float64 slice
+func getPercentileFloat(values []float64, percentile float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+
+	// Sort values
+	sorted := make([]float64, len(values))
+	copy(sorted, values)
+	for i := 0; i < len(sorted)-1; i++ {
+		for j := 0; j < len(sorted)-i-1; j++ {
+			if sorted[j] > sorted[j+1] {
+				sorted[j], sorted[j+1] = sorted[j+1], sorted[j]
+			}
+		}
+	}
+
+	index := int(float64(len(sorted)-1) * percentile / 100.0)
+	return sorted[index]
+}
+
+// sortModelsByScore sorts models by score in descending order
+func sortModelsByScore(scores []ModelScore) {
+	// Simple bubble sort for clarity (Go's sort package would be better for large lists)
+	for i := 0; i < len(scores)-1; i++ {
+		for j := 0; j < len(scores)-i-1; j++ {
+			if scores[j].Score < scores[j+1].Score {
+				scores[j], scores[j+1] = scores[j+1], scores[j]
+			}
+		}
+	}
+}
+
+// containsAny checks if any of the target strings are in the list
+func containsAny(list []string, targets ...string) bool {
+	for _, item := range list {
+		for _, target := range targets {
+			if item == target {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// Cleanup cleans up resources (implements cleanup pattern from MageAgent)
+func (c *OpenRouterClient) Cleanup() error {
+	log.Println("Cleaning up OpenRouterClient...")
+
+	// Clear model cache
+	c.modelCacheMu.Lock()
+	c.modelCache = make(map[string]*OpenRouterModel)
+	c.modelCacheMu.Unlock()
+
+	// Close idle connections
+	if transport, ok := c.httpClient.Transport.(*http.Transport); ok {
+		transport.CloseIdleConnections()
+	}
+
+	log.Println("OpenRouterClient cleanup complete")
+	return nil
+}

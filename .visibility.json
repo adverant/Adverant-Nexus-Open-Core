@@ -1,0 +1,169 @@
+{
+  "$schema": "https://adverant.ai/schemas/visibility-v1.json",
+  "version": "1.0.0",
+  "description": "License mapping for Adverant Nexus Open Core - defines which components are Apache 2.0 (open source) vs Elastic License 2.0 (enterprise)",
+  "default_license": "Apache-2.0",
+  "licenses": {
+    "Apache-2.0": {
+      "name": "Apache License 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "file": "LICENSE-APACHE-2.0",
+      "spdx_id": "Apache-2.0",
+      "osi_approved": true
+    },
+    "Elastic-2.0": {
+      "name": "Elastic License 2.0",
+      "url": "https://www.elastic.co/licensing/elastic-license",
+      "file": "LICENSE-ELASTIC",
+      "spdx_id": "Elastic-2.0",
+      "osi_approved": false
+    }
+  },
+  "mappings": {
+    "core/services/graphrag/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "**/storage/**": "Apache-2.0",
+        "**/episodic/**": "Apache-2.0",
+        "**/chunking/**": "Apache-2.0",
+        "**/websocket/**": "Apache-2.0",
+        "**/vector/**": "Apache-2.0",
+        "**/graph/**": "Apache-2.0",
+        "**/api/base-routes.ts": "Apache-2.0",
+        "**/api/retrieve-routes.ts": "Apache-2.0",
+        "**/api/enhanced-routes.ts": "Apache-2.0",
+        "**/gdpr/**": "Elastic-2.0",
+        "**/optimization/**": "Elastic-2.0",
+        "**/drive-ingestion/**": "Elastic-2.0",
+        "**/notion-ingestion/**": "Elastic-2.0",
+        "**/confluence-ingestion/**": "Elastic-2.0",
+        "**/security/rls.ts": "Elastic-2.0",
+        "**/security/tenant-isolation.ts": "Elastic-2.0"
+      },
+      "note": "GraphRAG core is Apache 2.0; GDPR, ingestion adapters, and RLS are Elastic License"
+    },
+    "core/services/mageagent/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "**/orchestration/**": "Apache-2.0",
+        "**/agents/**": "Apache-2.0",
+        "**/tasks/**": "Apache-2.0",
+        "**/streaming/**": "Apache-2.0",
+        "**/providers/**": "Apache-2.0",
+        "**/router/basic-router.ts": "Apache-2.0",
+        "**/router/smart-router.ts": "Elastic-2.0",
+        "**/profiler/**": "Elastic-2.0",
+        "**/pre-warmer/**": "Elastic-2.0",
+        "**/autonomous/**": "Elastic-2.0",
+        "**/analytics/**": "Elastic-2.0"
+      },
+      "note": "MageAgent core orchestration is Apache 2.0; smart routing, profiler, and autonomous mode are Elastic License"
+    },
+    "core/services/gateway/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "**/routes/**": "Apache-2.0",
+        "**/middleware/auth.ts": "Apache-2.0",
+        "**/middleware/rate-limit-basic.ts": "Apache-2.0",
+        "**/middleware/rate-limit-advanced.ts": "Elastic-2.0",
+        "**/middleware/tenant-context.ts": "Elastic-2.0",
+        "**/middleware/audit-logger.ts": "Elastic-2.0"
+      },
+      "note": "Basic gateway and auth are Apache 2.0; advanced features are Elastic License"
+    },
+    "core/services/auth/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "**/jwt/**": "Apache-2.0",
+        "**/oauth/basic.ts": "Apache-2.0",
+        "**/sso/saml.ts": "Elastic-2.0",
+        "**/sso/ldap.ts": "Elastic-2.0",
+        "**/sso/okta.ts": "Elastic-2.0",
+        "**/sso/auth0.ts": "Elastic-2.0"
+      },
+      "note": "Basic auth (JWT, OAuth) is Apache 2.0; enterprise SSO is Elastic License"
+    },
+    "core/packages/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "@adverant/nexus-cli/**": "Apache-2.0",
+        "@adverant/nexus-types/**": "Apache-2.0",
+        "@adverant/nexus-utils/**": "Apache-2.0",
+        "@adverant/nexus-database/**": "Apache-2.0",
+        "@adverant/nexus-config/**": "Apache-2.0",
+        "@adverant/nexus-analytics/**": "Elastic-2.0",
+        "@adverant/nexus-billing/**": "Elastic-2.0"
+      },
+      "note": "Core packages are Apache 2.0; analytics and billing are Elastic License"
+    },
+    "core/k8s/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "**/base/**": "Apache-2.0",
+        "**/deployments/**": "Apache-2.0",
+        "**/services/**": "Apache-2.0",
+        "**/configmaps/**": "Apache-2.0",
+        "**/istio/**": "Apache-2.0",
+        "**/monitoring/basic.yaml": "Apache-2.0",
+        "**/monitoring/enterprise.yaml": "Elastic-2.0",
+        "**/autoscaling/**": "Elastic-2.0"
+      },
+      "note": "Basic Kubernetes manifests are Apache 2.0; advanced monitoring and autoscaling are Elastic License"
+    },
+    "edge/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "graphrag-lite/**": "Apache-2.0",
+        "mageagent-lite/**": "Apache-2.0",
+        "docker-compose-lite.yml": "Apache-2.0"
+      },
+      "note": "Edge deployment variants (SQLite + FAISS) are Apache 2.0"
+    },
+    "plugins/": {
+      "license": "Apache-2.0",
+      "paths": {
+        "community/**": "Apache-2.0",
+        "enterprise/**": "Elastic-2.0"
+      },
+      "note": "Community plugins are Apache 2.0; enterprise plugins are Elastic License"
+    },
+    "docs/": {
+      "license": "Apache-2.0",
+      "note": "All documentation is Apache 2.0"
+    },
+    "examples/": {
+      "license": "Apache-2.0",
+      "note": "All examples are Apache 2.0"
+    }
+  },
+  "exclusions": {
+    "never_open_source": [
+      "**/gdpr/**",
+      "**/security/rls.ts",
+      "**/security/tenant-isolation.ts",
+      "**/router/smart-router.ts",
+      "**/profiler/**",
+      "**/pre-warmer/**",
+      "**/autonomous/**",
+      "**/drive-ingestion/**",
+      "**/notion-ingestion/**",
+      "**/confluence-ingestion/**",
+      "**/sso/saml.ts",
+      "**/sso/ldap.ts",
+      "**/sso/okta.ts",
+      "**/sso/auth0.ts",
+      "@adverant/nexus-analytics/**",
+      "@adverant/nexus-billing/**",
+      "**/monitoring/enterprise.yaml",
+      "**/autoscaling/**",
+      "plugins/enterprise/**"
+    ],
+    "note": "These paths contain enterprise-only features and will NEVER be included in the open-source core"
+  },
+  "metadata": {
+    "last_updated": "2025-01-03T00:00:00Z",
+    "maintained_by": "Adverant Open Source Team",
+    "contact": "opensource@adverant.ai",
+    "repository": "https://github.com/adverant/Adverant-Nexus-Open-Core"
+  }
+}

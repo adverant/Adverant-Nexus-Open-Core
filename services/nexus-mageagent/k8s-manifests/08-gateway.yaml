@@ -1,0 +1,66 @@
+# Option 1: Create a dedicated GraphRAG Gateway
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: graphrag-gateway
+  namespace: istio-system
+  labels:
+    app: graphrag
+    adverant.ai/service: graphrag-platform
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    # HTTP server
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - graphrag.adverant.ai
+      # Redirect HTTP to HTTPS
+      tls:
+        httpsRedirect: true
+
+    # HTTPS server
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - graphrag.adverant.ai
+      tls:
+        mode: SIMPLE
+        credentialName: graphrag-adverant-ai-tls  # TLS certificate secret
+
+---
+# Alternative: If you prefer to patch the existing vibe-gateway,
+# use this command instead of creating a new gateway:
+#
+# kubectl patch gateway vibe-gateway -n istio-system --type='json' -p='[
+#   {
+#     "op": "add",
+#     "path": "/spec/servers/0/hosts/-",
+#     "value": "graphrag.adverant.ai"
+#   }
+# ]'
+#
+# And for HTTPS:
+# kubectl patch gateway vibe-gateway -n istio-system --type='json' -p='[
+#   {
+#     "op": "add",
+#     "path": "/spec/servers/-",
+#     "value": {
+#       "hosts": ["graphrag.adverant.ai"],
+#       "port": {
+#         "name": "https-graphrag",
+#         "number": 443,
+#         "protocol": "HTTPS"
+#       },
+#       "tls": {
+#         "mode": "SIMPLE",
+#         "credentialName": "graphrag-adverant-ai-tls"
+#       }
+#     }
+#   }
+# ]'

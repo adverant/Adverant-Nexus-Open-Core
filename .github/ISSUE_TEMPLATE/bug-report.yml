@@ -1,0 +1,138 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have read the documentation
+          required: true
+        - label: I am using the latest version of Nexus Open Core
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal steps to reproduce the bug
+      placeholder: |
+        1. Install package...
+        2. Run command...
+        3. Observe error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: The service should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Instead, the service...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Nexus Version
+      description: Which version are you using? (check package.json or git tag)
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Method
+      options:
+        - Docker Compose (local development)
+        - Kubernetes - K3s
+        - Kubernetes - EKS
+        - Kubernetes - GKE
+        - Kubernetes - AKS
+        - Source build (npm install)
+        - Other (specify in additional context)
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Node version, OS, database versions, etc.
+      placeholder: |
+        - Node.js: 20.10.0
+        - OS: Ubuntu 22.04 / macOS 14.0 / Windows 11
+        - Docker: 24.0.7
+        - PostgreSQL: 15.3
+        - Neo4j: 5.13.0
+        - Qdrant: 1.7.0
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Copy/paste relevant log output (use code blocks for formatting)
+      placeholder: |
+        ```
+        ERROR: Connection refused to PostgreSQL
+        at DBService.connect (db-service.ts:42)
+        ```
+      render: shell
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (blocks all usage)
+        - High (major functionality broken)
+        - Medium (workaround exists)
+        - Low (minor issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or configuration files
+      placeholder: |
+        - Screenshot of error
+        - Relevant configuration (docker-compose.yml, .env)
+        - Related issues or PRs

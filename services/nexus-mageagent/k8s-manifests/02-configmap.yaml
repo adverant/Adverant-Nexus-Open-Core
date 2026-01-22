@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mageagent-config
+  namespace: mage-agent
+  labels:
+    app: mageagent
+    adverant.ai/service: mageagent
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  PORT: "8080"
+  WS_PORT: "8081"
+  LOG_LEVEL: "info"
+
+  # Service Discovery
+  SERVICE_NAME: "mageagent"
+  SERVICE_NAMESPACE: "mage-agent"
+
+  # Database Endpoints (using internal DNS)
+  POSTGRES_HOST: "postgres-postgresql-primary.vibe-data.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "mageagent"
+  POSTGRES_POOL_MIN: "5"
+  POSTGRES_POOL_MAX: "20"
+
+  REDIS_HOST: "redis.vibe-data.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_POOL_SIZE: "10"
+
+  NEO4J_HOST: "neo4j.vibe-data.svc.cluster.local"
+  NEO4J_PORT: "7687"
+  NEO4J_HTTP_PORT: "7474"
+  NEO4J_DATABASE: "neo4j"
+
+  QDRANT_HOST: "qdrant.vibe-data.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "mageagent_embeddings"
+
+  # GraphRAG Service Endpoints
+  GRAPHRAG_API_URL: "http://graphrag-api-internal.graphrag-system.svc.cluster.local:8090"
+  GRAPHRAG_MCP_URL: "http://graphrag-mcp.graphrag-system.svc.cluster.local:3000"
+
+  # Agent Configuration
+  AGENT_WORKERS_COUNT: "4"
+  AGENT_TASK_TIMEOUT: "300000"  # 5 minutes
+  AGENT_MAX_RETRIES: "3"
+  AGENT_BACKOFF_INITIAL: "1000"
+  AGENT_BACKOFF_MAX: "60000"
+
+  # Rate Limiting
+  RATE_LIMIT_WINDOW_MS: "60000"  # 1 minute
+  RATE_LIMIT_MAX_REQUESTS: "100"
+
+  # Circuit Breaker
+  CIRCUIT_BREAKER_TIMEOUT: "3000"
+  CIRCUIT_BREAKER_ERROR_THRESHOLD: "50"
+  CIRCUIT_BREAKER_RESET_TIMEOUT: "30000"
+
+  # Monitoring
+  METRICS_ENABLED: "true"
+  METRICS_PREFIX: "mageagent"
+  HEALTH_CHECK_INTERVAL: "30000"
+
+  # CORS Configuration
+  CORS_ALLOWED_ORIGINS: "https://graphrag.adverant.ai"
+  CORS_ALLOWED_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+  CORS_ALLOWED_HEADERS: "Content-Type,Authorization,X-Request-ID"
+  CORS_CREDENTIALS: "true"
+
+  # WebSocket Configuration
+  WS_PING_INTERVAL: "25000"
+  WS_PING_TIMEOUT: "5000"
+  WS_MAX_CONNECTIONS_PER_IP: "10"

@@ -1,0 +1,47 @@
+{
+  "name": "@adverant/repo-analyzer",
+  "version": "1.0.0",
+  "description": "AI-powered repository analysis and architecture discovery",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "repository",
+    "analysis",
+    "architecture",
+    "ai",
+    "code-analysis"
+  ],
+  "author": "Adverant",
+  "license": "MIT",
+  "dependencies": {
+    "isomorphic-git": "^1.27.1",
+    "simple-git": "^3.27.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

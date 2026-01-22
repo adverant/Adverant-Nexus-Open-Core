@@ -1,0 +1,55 @@
+# Code Owners - Automatically assigned for PR review
+#
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+# More information: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @don-adverant
+
+# Services
+/services/nexus-graphrag/ @don-adverant
+/services/nexus-mageagent/ @don-adverant
+
+# Infrastructure packages
+/packages/ @don-adverant
+/packages/adverant-logger/ @don-adverant
+/packages/adverant-config/ @don-adverant
+/packages/adverant-types/ @don-adverant
+/packages/adverant-db/ @don-adverant
+/packages/adverant-redis/ @don-adverant
+/packages/adverant-vector/ @don-adverant
+/packages/adverant-graph/ @don-adverant
+/packages/adverant-auth/ @don-adverant
+/packages/adverant-mcp/ @don-adverant
+/packages/adverant-errors/ @don-adverant
+
+# Documentation
+/docs/ @don-adverant
+/README.md @don-adverant
+/CONTRIBUTING.md @don-adverant
+
+# Community health files
+/CODE_OF_CONDUCT.md @don-adverant
+/SECURITY.md @don-adverant
+/GOVERNANCE.md @don-adverant
+/ROADMAP.md @don-adverant
+/CHANGELOG.md @don-adverant
+
+# Configuration files
+/package.json @don-adverant
+/tsconfig.json @don-adverant
+/docker-compose*.yml @don-adverant
+
+# GitHub workflows and templates
+/.github/ @don-adverant
+/.github/workflows/ @don-adverant
+/.github/ISSUE_TEMPLATE/ @don-adverant
+
+# Deployment and infrastructure
+/k8s/ @don-adverant
+/scripts/ @don-adverant
+
+# Security-sensitive files (require extra scrutiny)
+/SECURITY.md @don-adverant
+/.github/workflows/security-scan.yml @don-adverant

@@ -1,0 +1,71 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# TypeScript source (not needed for prebuild)
+src/
+
+# Test files and coverage
+tests/
+test/
+coverage/
+*.test.ts
+*.spec.ts
+jest.config.*
+__tests__/
+__mocks__/
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Docker files
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Development scripts
+scripts/dev/
+
+# Explicitly include what we need
+!dist/
+!migrations/
+!package*.json
+!docker-entrypoint.sh
