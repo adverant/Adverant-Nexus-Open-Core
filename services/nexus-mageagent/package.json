@@ -39,7 +39,7 @@
     "@adverant/errors": "file:../../packages/adverant-errors",
     "@adverant/nexus-telemetry": "file:../../packages/nexus-telemetry",
     "@adverant/resilience": "file:../../packages/adverant-resilience",
-    "@google-cloud/aiplatform": "^3.0.0",
+    "@google-cloud/aiplatform": "^6.1.0",
     "@google-cloud/bigquery": "^7.0.0",
     "@googlemaps/google-maps-services-js": "^3.3.0",
     "@opentelemetry/api": "^1.9.0",
