@@ -69,7 +69,7 @@
     "neo4j-driver": "^5.19.0",
     "opossum": "^8.5.0",
     "p-queue": "^6.6.2",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "^2.4.5",
     "pdf.js-extract": "^0.2.1",
     "pg": "^8.11.5",
     "prom-client": "^15.1.0",
