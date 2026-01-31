@@ -68,7 +68,7 @@
     "jsonwebtoken": "^9.0.2",
     "neo4j-driver": "^5.19.0",
     "opossum": "^8.5.0",
-    "p-queue": "^6.6.2",
+    "p-queue": "^9.1.0",
     "pdf-parse": "^1.1.1",
     "pdf.js-extract": "^0.2.1",
     "pg": "^8.11.5",
