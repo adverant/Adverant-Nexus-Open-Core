@@ -28,7 +28,7 @@
     "@adverant/event-bus": "file:../adverant-event-bus",
     "@adverant/logger": "file:../adverant-logger",
     "@adverant/resilience": "file:../adverant-resilience",
-    "axios": "^1.12.2",
+    "axios": "^1.13.4",
     "dotenv": "^16.6.1",
     "exceljs": "^4.4.0",
     "mammoth": "^1.8.0",
