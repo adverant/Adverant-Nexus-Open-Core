@@ -33,7 +33,7 @@
     "exceljs": "^4.4.0",
     "mammoth": "^1.8.0",
     "marked": "^9.0.0",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "^2.4.5",
     "winston": "^3.18.3"
   },
   "devDependencies": {
