@@ -25,7 +25,7 @@
     "@adverant/logger": "file:../adverant-logger",
     "@adverant/resilience": "file:../adverant-resilience",
     "@qdrant/js-client-rest": "^1.9.0",
-    "ioredis": "^5.3.2",
+    "ioredis": "^5.9.2",
     "neo4j-driver": "^5.19.0",
     "pg": "^8.11.5"
   },
