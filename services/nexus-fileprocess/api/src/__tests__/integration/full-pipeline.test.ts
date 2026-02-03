@@ -16,7 +16,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Test configuration
-const API_BASE_URL = process.env.TEST_API_URL || 'http://157.173.102.118:9099';
+const API_BASE_URL = process.env.TEST_API_URL || 'http://YOUR_SERVER_IP:9099';
 const MAGEAGENT_URL = process.env.MAGEAGENT_URL || 'http://nexus-mageagent:8080';
 const SANDBOX_URL = process.env.SANDBOX_URL || 'http://nexus-sandbox:8090';
 const GRAPHRAG_URL = process.env.GRAPHRAG_URL || 'http://nexus-graphrag:8091';
