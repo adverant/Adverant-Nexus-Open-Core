@@ -317,7 +317,7 @@ Include:
 2. Key findings and consensus
 3. Contradictions or debates
 4. Research gaps and future directions`,
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-opus-4-6-20260206',
       companyId: this.companyId,
       appId: this.appId,
     });

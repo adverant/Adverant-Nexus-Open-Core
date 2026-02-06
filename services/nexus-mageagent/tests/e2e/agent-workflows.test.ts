@@ -175,7 +175,7 @@ describe('MageAgent End-to-End Workflow Tests', () => {
         competitorCount: 4,
         models: [
           'openai/gpt-4-turbo',
-          'anthropic/claude-3-opus',
+          'anthropic/claude-opus-4.6',
           'meta-llama/llama-3-70b-instruct',
           'mistral/mixtral-8x22b-instruct'
         ]

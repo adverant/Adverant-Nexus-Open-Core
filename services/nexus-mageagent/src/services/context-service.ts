@@ -887,7 +887,7 @@ JSON:`;
 
       const response = await this.complete({
         prompt,
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-opus-4.6',
         maxTokens: 200,
         temperature: 0.2
       });

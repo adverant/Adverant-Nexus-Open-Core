@@ -375,7 +375,7 @@ MageAgent supports **320+ LLM models** via multiple providers:
 | Provider | Models | Strengths |
 |----------|--------|-----------|
 | **OpenAI** | GPT-4, GPT-3.5 Turbo | Best general quality, function calling |
-| **Anthropic** | Claude 3.5 Sonnet, Opus, Haiku | 200K context, best for long documents |
+| **Anthropic** | Claude Opus 4.6, Opus, Haiku | 200K context, best for long documents |
 | **Google** | Gemini Pro, Ultra | Multimodal (vision), fast |
 | **Cohere** | Command, Command-R | Best for retrieval, reranking |
 | **OpenRouter** | 320+ models | Llama 3, Mixtral, Qwen, etc. |
@@ -395,7 +395,7 @@ class ModelRouter {
 
         // Route by context length
         if (characteristics.tokenCount > 100000) {
-            return this.getModelInfo('claude-3-5-sonnet-20241022');  // 200K context
+            return this.getModelInfo('claude-opus-4-6-20260206');  // 200K context
         }
 
         // Route by tool usage
@@ -414,7 +414,7 @@ class ModelRouter {
         }
 
         // Default to balanced option
-        return this.getModelInfo('claude-3-5-sonnet-20241022');
+        return this.getModelInfo('claude-opus-4-6-20260206');
     }
 
     private analyzeTask(request: ModelRequest): TaskCharacteristics {

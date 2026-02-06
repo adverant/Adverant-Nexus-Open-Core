@@ -253,7 +253,7 @@ Cannot process unlimited text.
 | High accuracy, complex reasoning | Claude 3 Opus, GPT-4 |
 | Fast responses, simple tasks | Claude 3 Haiku, GPT-3.5 |
 | Cost-sensitive | Open-source (Llama, Mistral) |
-| Code generation | Claude 3.5 Sonnet, GPT-4 |
+| Code generation | Claude Opus 4.6, GPT-4 |
 | Long documents | Claude 3 (200K), Gemini 1.5 |
 
 ## References

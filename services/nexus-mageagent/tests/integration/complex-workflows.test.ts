@@ -190,7 +190,7 @@ describe('MageAgent Complex Workflow Integration Tests', () => {
         challenge: 'Design an efficient algorithm for real-time fraud detection in financial transactions. Consider scalability, accuracy, and latency constraints.',
         competitorCount: 5,
         models: [
-          'anthropic/claude-3.5-sonnet',
+          'anthropic/claude-opus-4.6',
           'anthropic/claude-opus-4',
           'openai/gpt-4',
           'google/gemini-pro',
@@ -684,7 +684,7 @@ function processUserInput(input) {
     it('should select model based on task complexity', async () => {
       const testCases = [
         { complexity: 0.2, taskType: 'simple', expected: 'haiku' },
-        { complexity: 0.6, taskType: 'analysis', expected: 'sonnet' },
+        { complexity: 0.6, taskType: 'analysis', expected: 'opus' },
         { complexity: 0.9, taskType: 'code', expected: 'opus' }
       ];
 

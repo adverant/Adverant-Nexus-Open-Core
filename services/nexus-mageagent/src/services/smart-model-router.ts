@@ -34,8 +34,8 @@ export class SmartModelRouter {
   // Model cost estimates (per 1M tokens)
   private modelCosts: Record<string, number> = {
     'anthropic/claude-opus-4': 15.0,
-    'anthropic/claude-3.7-sonnet': 3.0,
-    'anthropic/claude-3.5-sonnet': 3.0,
+    'anthropic/claude-opus-4-6-20260206': 3.0,
+    'anthropic/claude-opus-4.6': 3.0,
     'anthropic/claude-3-haiku': 0.25,
     'openai/gpt-4o': 5.0,
     'openai/gpt-4o-mini': 0.15,
@@ -49,29 +49,29 @@ export class SmartModelRouter {
   private fallbackChains: Record<AgentRole, string[]> = {
     [AgentRole.RESEARCH]: [
       'anthropic/claude-opus-4',
-      'anthropic/claude-3.7-sonnet',
+      'anthropic/claude-opus-4-6-20260206',
       'openai/gpt-4o',
       'google/gemini-2.0-flash'
     ],
     [AgentRole.CODING]: [
-      'anthropic/claude-3.7-sonnet',
+      'anthropic/claude-opus-4-6-20260206',
       'openai/gpt-4o',
-      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-opus-4.6',
       'google/gemini-2.0-flash'
     ],
     [AgentRole.REVIEW]: [
       'anthropic/claude-opus-4',
       'openai/gpt-4o',
-      'anthropic/claude-3.5-sonnet'
+      'anthropic/claude-opus-4.6'
     ],
     [AgentRole.SYNTHESIS]: [
-      'anthropic/claude-3.7-sonnet',
-      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-opus-4-6-20260206',
+      'anthropic/claude-opus-4.6',
       'google/gemini-2.0-flash'
     ],
     [AgentRole.SPECIALIST]: [
       'anthropic/claude-opus-4',
-      'anthropic/claude-3.7-sonnet',
+      'anthropic/claude-opus-4-6-20260206',
       'openai/gpt-4o'
     ]
   };
@@ -159,16 +159,16 @@ export class SmartModelRouter {
     } else if (criteria.complexity === 'complex') {
       // Use mid-tier premium model
       if (criteria.role === AgentRole.CODING) {
-        selectedModel = 'anthropic/claude-3.7-sonnet';
-        reason = 'Complex coding task - using Claude 3.7 Sonnet for optimal balance';
+        selectedModel = 'anthropic/claude-opus-4-6-20260206';
+        reason = 'Complex coding task - using Claude Opus 4.6 for optimal balance';
       } else {
         selectedModel = 'openai/gpt-4o';
         reason = 'Complex task - using GPT-4o for strong reasoning';
       }
     } else {
       // Medium complexity - use balanced model
-      selectedModel = 'anthropic/claude-3.5-sonnet';
-      reason = 'Medium complexity - using Claude 3.5 Sonnet for good balance';
+      selectedModel = 'anthropic/claude-opus-4.6';
+      reason = 'Medium complexity - using Claude Opus 4.6 for good balance';
     }
 
     return {
@@ -223,8 +223,8 @@ export class SmartModelRouter {
   private estimateLatency(model: string, complexity: string): number {
     const baseLatency: Record<string, number> = {
       'anthropic/claude-opus-4': 15000,
-      'anthropic/claude-3.7-sonnet': 8000,
-      'anthropic/claude-3.5-sonnet': 6000,
+      'anthropic/claude-opus-4-6-20260206': 8000,
+      'anthropic/claude-opus-4.6': 6000,
       'anthropic/claude-3-haiku': 3000,
       'openai/gpt-4o': 10000,
       'openai/gpt-4o-mini': 4000,
@@ -256,8 +256,8 @@ export class SmartModelRouter {
   private estimateQuality(model: string, complexity: string): number {
     const modelQuality: Record<string, number> = {
       'anthropic/claude-opus-4': 0.95,
-      'anthropic/claude-3.7-sonnet': 0.90,
-      'anthropic/claude-3.5-sonnet': 0.88,
+      'anthropic/claude-opus-4-6-20260206': 0.90,
+      'anthropic/claude-opus-4.6': 0.88,
       'anthropic/claude-3-haiku': 0.82,
       'openai/gpt-4o': 0.92,
       'openai/gpt-4o-mini': 0.85,

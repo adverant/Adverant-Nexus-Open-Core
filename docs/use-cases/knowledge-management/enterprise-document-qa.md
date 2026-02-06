@@ -270,7 +270,7 @@ Question: ${question}
 
 Context:
 ${context.map((doc, i) => `[${i + 1}] ${doc.title}\n${doc.snippet}`).join('\n\n')}`,
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-opus-4-6-20260206',
             stream: true
         });
 

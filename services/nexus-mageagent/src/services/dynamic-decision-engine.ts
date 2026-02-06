@@ -288,7 +288,7 @@ export class DynamicDecisionEngine {
 
   constructor(config?: Partial<DynamicDecisionEngineConfig>) {
     this.config = {
-      primaryModel: config?.primaryModel || 'anthropic/claude-sonnet-4-5-20250514',
+      primaryModel: config?.primaryModel || 'anthropic/claude-opus-4.6',
       fallbackModel: config?.fallbackModel || 'google/gemini-2.0-flash-001',
       patternCacheTtlMs: config?.patternCacheTtlMs || 24 * 60 * 60 * 1000, // 24 hours
       maxPatternCacheSize: config?.maxPatternCacheSize || 10000,

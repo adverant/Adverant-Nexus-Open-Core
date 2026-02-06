@@ -2574,14 +2574,14 @@ export function createDataExplorerRoutes(
         // These are the models we recommend for memory chat
         const models = [
           {
-            id: 'anthropic/claude-sonnet-4',
-            name: 'Claude Sonnet 4',
+            id: 'anthropic/claude-opus-4.6',
+            name: 'Claude Opus 4.6',
             provider: 'Anthropic',
             available: !!openRouterApiKey,
           },
           {
-            id: 'anthropic/claude-opus-4.5',
-            name: 'Claude Opus 4.5',
+            id: 'anthropic/claude-opus-4.6',
+            name: 'Claude Opus 4.6',
             provider: 'Anthropic',
             available: !!openRouterApiKey,
           },
@@ -2630,7 +2630,7 @@ export function createDataExplorerRoutes(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const {
-          model = 'anthropic/claude-sonnet-4',
+          model = 'anthropic/claude-opus-4.6',
           messages,
           context,
           sessionId,

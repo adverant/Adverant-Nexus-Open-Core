@@ -32,7 +32,7 @@
   "openRouter": {
     "classification": {
       "primary": {
-        "model": "anthropic/claude-3.5-sonnet",
+        "model": "anthropic/claude-opus-4.6",
         "description": "Best for text understanding and vision",
         "supportsVision": true,
         "maxTokens": 200000
@@ -44,7 +44,7 @@
         "maxTokens": 32000
       },
       "fast": {
-        "model": "anthropic/claude-sonnet-4.5",
+        "model": "anthropic/claude-opus-4.6",
         "description": "Fast and high-quality classification",
         "supportsVision": true,
         "maxTokens": 200000
@@ -58,7 +58,7 @@
     },
     "extraction": {
       "primary": {
-        "model": "anthropic/claude-3.5-sonnet",
+        "model": "anthropic/claude-opus-4.6",
         "description": "Best for information extraction"
       },
       "structured": {
@@ -68,11 +68,11 @@
     },
     "summarization": {
       "primary": {
-        "model": "anthropic/claude-3.5-sonnet",
+        "model": "anthropic/claude-opus-4.6",
         "description": "Best for summarization tasks"
       },
       "long": {
-        "model": "anthropic/claude-3-opus",
+        "model": "anthropic/claude-opus-4.6",
         "description": "For very long documents",
         "maxTokens": 200000
       }

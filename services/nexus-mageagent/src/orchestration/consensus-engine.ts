@@ -100,8 +100,8 @@ export interface AgentContribution {
 }
 
 export class ConsensusEngine {
-  private readonly META_ANALYZER_MODEL = 'anthropic/claude-3.5-sonnet';
-  private readonly SYNTHESIS_MODEL = 'anthropic/claude-sonnet-4.5';
+  private readonly META_ANALYZER_MODEL = 'anthropic/claude-opus-4.6';
+  private readonly SYNTHESIS_MODEL = 'anthropic/claude-opus-4.6';
 
   constructor(
     private openRouterClient: OpenRouterClient,

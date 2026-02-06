@@ -147,7 +147,7 @@ export class ModelManager {
       openRouter: {
         classification: {
           primary: {
-            model: 'anthropic/claude-3.5-sonnet',
+            model: 'anthropic/claude-opus-4.6',
             supportsVision: true,
             maxTokens: 200000
           },
@@ -157,7 +157,7 @@ export class ModelManager {
             maxTokens: 32000
           },
           fast: {
-            model: 'anthropic/claude-sonnet-4.5',
+            model: 'anthropic/claude-opus-4.6',
             supportsVision: true,
             maxTokens: 200000
           },
@@ -168,12 +168,12 @@ export class ModelManager {
           }
         },
         extraction: {
-          primary: { model: 'anthropic/claude-3.5-sonnet' },
+          primary: { model: 'anthropic/claude-opus-4.6' },
           structured: { model: 'openai/gpt-4-turbo' }
         },
         summarization: {
-          primary: { model: 'anthropic/claude-3.5-sonnet' },
-          long: { model: 'anthropic/claude-3-opus', maxTokens: 200000 }
+          primary: { model: 'anthropic/claude-opus-4.6' },
+          long: { model: 'anthropic/claude-opus-4.6', maxTokens: 200000 }
         }
       },
       modelSelection: {

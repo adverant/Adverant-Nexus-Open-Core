@@ -221,7 +221,7 @@ curl -X POST http://localhost:8080/mageagent/api/v1/tasks \
   -H "X-App-ID: demo-app" \
   -d '{
     "prompt": "Retrieve information about Nexus storage architecture and explain the key benefits in 3 bullet points.",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-opus-4-6-20260206",
     "stream": false,
     "context": {
       "useGraphRAG": true,
@@ -237,7 +237,7 @@ curl -X POST http://localhost:8080/mageagent/api/v1/tasks \
   "status": "completed",
   "result": {
     "content": "Based on the retrieved information:\n\n• **No Information Loss**: Triple-layer architecture preserves structured data, relationships, and semantic meaning—30-50% better recall than single-store systems\n• **Multi-Modal Search**: Enables exact matches (PostgreSQL), graph traversal (Neo4j), and semantic similarity (Qdrant) in a single query\n• **Production-Ready Multi-Tenancy**: Built-in Row-Level Security and namespace isolation for enterprise deployments",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-opus-4-6-20260206",
     "tokensUsed": 245
   },
   "retrievedContext": [
@@ -343,7 +343,7 @@ nano services/nexus-mageagent/.env
 # OpenAI (GPT-4, GPT-3.5)
 OPENAI_API_KEY=sk-proj-your-key-here
 
-# Anthropic (Claude 3.5 Sonnet, Opus, Haiku)
+# Anthropic (Claude Opus 4.6, Opus, Haiku)
 ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 
 # Voyage AI (embeddings)
@@ -364,7 +364,7 @@ docker-compose -f docker-compose.test.yml restart mageagent
 
 **Now you have access to:**
 - ✅ **OpenAI GPT-4, GPT-3.5 Turbo**
-- ✅ **Anthropic Claude 3.5 Sonnet, Opus, Haiku**
+- ✅ **Anthropic Claude Opus 4.6, Opus, Haiku**
 - ✅ **Google Gemini Pro, Ultra**
 - ✅ **320+ models via OpenRouter** (Llama 3, Mixtral, Qwen, etc.)
 

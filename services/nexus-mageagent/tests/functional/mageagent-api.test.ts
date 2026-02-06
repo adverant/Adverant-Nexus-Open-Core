@@ -147,7 +147,7 @@ class MageAgentFunctionalTests {
       task: 'Analyze the impact of AI on software development productivity',
       options: {
         agentCount: 3,
-        models: ['openai/gpt-4-turbo', 'anthropic/claude-3-opus', 'google/gemini-pro']
+        models: ['openai/gpt-4-turbo', 'anthropic/claude-opus-4.6', 'google/gemini-pro']
       }
     };
 
@@ -179,7 +179,7 @@ class MageAgentFunctionalTests {
     const competitionRequest = {
       challenge: 'Develop the most efficient algorithm for real-time data stream processing',
       competitorCount: 3,
-      models: ['openai/gpt-4-turbo', 'anthropic/claude-3-opus', 'google/gemini-pro']
+      models: ['openai/gpt-4-turbo', 'anthropic/claude-opus-4.6', 'google/gemini-pro']
     };
 
     const result = await this.makeRequest('POST', '/api/competition', competitionRequest);
@@ -326,7 +326,7 @@ class MageAgentFunctionalTests {
 
     const validModels = [
       'openai/gpt-4-turbo',
-      'anthropic/claude-3-opus',
+      'anthropic/claude-opus-4.6',
       'google/gemini-pro'
     ];
 

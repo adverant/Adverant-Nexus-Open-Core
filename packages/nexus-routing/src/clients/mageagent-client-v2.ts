@@ -793,7 +793,7 @@ export class MageAgentClientV2 {
   // ========================================
 
   /**
-   * Multi-model code validation using 3 models (GPT-4o, Claude 3.7, Sonnet 4.5)
+   * Multi-model code validation using 3 models (GPT-4o, Claude 3.7, Opus 4.6)
    * Takes 8-28 seconds - designed for async/background execution
    */
   async validateCode(validation: {
@@ -807,8 +807,8 @@ export class MageAgentClientV2 {
       ...validation,
       models: validation.models || [
         'openai/gpt-4o-2024-11-20',
-        'anthropic/claude-3.7-sonnet',
-        'anthropic/claude-sonnet-4.5'
+        'anthropic/claude-opus-4-6-20260206',
+        'anthropic/claude-opus-4.6'
       ],
       consensusRequired: true
     }, 'nexus_validate_code');
@@ -829,8 +829,8 @@ export class MageAgentClientV2 {
       riskHeuristics: validation.riskHeuristics !== false,
       models: [
         'openai/gpt-4o-2024-11-20',
-        'anthropic/claude-3.7-sonnet',
-        'anthropic/claude-sonnet-4.5'
+        'anthropic/claude-opus-4-6-20260206',
+        'anthropic/claude-opus-4.6'
       ]
     }, 'nexus_validate_command');
   }

@@ -153,7 +153,7 @@ curl -X POST http://localhost:8080/mageagent/api/v1/tasks \
   -H "X-Company-ID: demo-company" \
   -d '{
     "prompt": "Analyze the architecture and explain the benefits of triple-layer storage",
-    "model": "claude-3-5-sonnet-20241022"
+    "model": "claude-opus-4-6-20260206"
   }'
 ```
 

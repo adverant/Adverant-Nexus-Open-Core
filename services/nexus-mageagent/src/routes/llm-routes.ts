@@ -205,7 +205,7 @@ router.get('/models',
  *
  * Request Body:
  * {
- *   model: string - Model ID (e.g., 'anthropic/claude-sonnet-4-5-20250514')
+ *   model: string - Model ID (e.g., 'anthropic/claude-opus-4.6')
  *   messages: Array<{role: 'system'|'user'|'assistant', content: string}> - Conversation history
  *   temperature?: number - Sampling temperature (0-2, default: 0.7)
  *   max_tokens?: number - Maximum tokens to generate (default: 4000)
@@ -240,7 +240,7 @@ router.post('/chat',
     if (!model || typeof model !== 'string') {
       throw new ValidationError('model is required and must be a string', {
         acceptedFields: ['model'],
-        context: { hint: 'Specify a valid OpenRouter model ID like "anthropic/claude-sonnet-4-5-20250514"' }
+        context: { hint: 'Specify a valid OpenRouter model ID like "anthropic/claude-opus-4.6"' }
       });
     }
 

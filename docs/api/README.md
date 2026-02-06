@@ -277,7 +277,7 @@ curl -X POST http://localhost:8080/api/v1/tasks \
   -H "X-App-ID: test" \
   -d '{
     "prompt": "Summarize the key features of Adverant Nexus",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-opus-4-6-20260206",
     "context": {
       "useGraphRAG": true,
       "graphragQuery": "Adverant Nexus features"
@@ -300,7 +300,7 @@ Check task execution status and retrieve result.
   "status": "completed",
   "result": {
     "content": "string",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-opus-4-6-20260206",
     "tokensUsed": 1247,
     "completionTime": 8.4
   },

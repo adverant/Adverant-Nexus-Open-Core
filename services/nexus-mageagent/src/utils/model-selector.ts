@@ -40,16 +40,16 @@ export class ModelSelector {
   private readonly FALLBACK_CHAINS: Record<string, string[]> = {
     // Primary model -> fallback options in order of preference
     'anthropic/claude-opus-4.1': [
-      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-opus-4.6',
       'anthropic/claude-3-opus-20240229',
-      'anthropic/claude-3-sonnet-20240229',
+      'anthropic/claude-opus-4.6',
       'openai/gpt-4-turbo',
       'google/gemini-pro-1.5'
     ],
     'openai/gpt-5-codex': [
       'openai/gpt-4-turbo',
       'openai/gpt-4',
-      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-opus-4.6',
       'deepseek/deepseek-coder',
       'google/gemini-pro-1.5'
     ],
@@ -72,7 +72,7 @@ export class ModelSelector {
       // Anthropic models - Claude 3+ have vision
       ['anthropic/claude-3', { coding: true, analysis: true, creative: true, vision: true, multimodal: true, quality: 'high', speed: 'medium' }],
       ['anthropic/claude-opus', { coding: true, analysis: true, creative: true, vision: true, multimodal: true, quality: 'high', speed: 'slow' }],
-      ['anthropic/claude-sonnet', { coding: true, analysis: true, creative: true, vision: true, multimodal: true, quality: 'high', speed: 'medium' }],
+      ['anthropic/claude-opus-4.6', { coding: true, analysis: true, creative: true, vision: true, multimodal: true, quality: 'high', speed: 'medium' }],
       ['anthropic/claude', { coding: true, analysis: true, creative: true, quality: 'high', speed: 'medium' }],
 
       // OpenAI vision models
@@ -316,7 +316,7 @@ export class ModelSelector {
     if (parts.length < 2) return modelId;
 
     const modelName = parts[1];
-    // Extract family from model name (e.g., "claude-3.5-sonnet" -> "claude-3")
+    // Extract family from model name (e.g., "claude-opus-4-6-20260206" -> "claude-3")
     const familyMatch = modelName.match(/^([a-z]+-\d+)/i);
     return familyMatch ? familyMatch[1] : modelName.split('-')[0];
   }
@@ -327,28 +327,28 @@ export class ModelSelector {
   private getFallbackDiverseModels(count: number, role: AgentRole): string[] {
     const fallbackSets: Record<string, string[]> = {
       [AgentRole.RESEARCH]: [
-        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-opus-4.6',
         'openai/gpt-4.1',
         'google/gemini-pro-1.5',
         'meta-llama/llama-3.1-70b-instruct',
         'mistralai/mistral-large',
-        'anthropic/claude-3-opus',
+        'anthropic/claude-opus-4.6',
         'openai/gpt-4-turbo',
         'cohere/command-r-plus'
       ],
       [AgentRole.CODING]: [
         'openai/gpt-4.1',
-        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-opus-4.6',
         'deepseek/deepseek-coder',
         'meta-llama/llama-3.1-70b-instruct',
         'google/gemini-pro-1.5',
         'mistralai/codestral'
       ],
       [AgentRole.SPECIALIST]: [
-        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-opus-4.6',
         'openai/gpt-4.1',
         'google/gemini-pro-1.5',
-        'anthropic/claude-3-opus',
+        'anthropic/claude-opus-4.6',
         'openai/gpt-4-turbo',
         'meta-llama/llama-3.1-70b-instruct',
         'mistralai/mistral-large',
@@ -358,15 +358,15 @@ export class ModelSelector {
       ],
       [AgentRole.REVIEW]: [
         'openai/gpt-4.1',
-        'anthropic/claude-3-opus',
+        'anthropic/claude-opus-4.6',
         'google/gemini-pro-1.5',
-        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-opus-4.6',
         'mistralai/mistral-large'
       ],
       [AgentRole.SYNTHESIS]: [
-        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-opus-4.6',
         'openai/gpt-4.1',
-        'anthropic/claude-3-opus',
+        'anthropic/claude-opus-4.6',
         'google/gemini-pro-1.5',
         'mistralai/mistral-large'
       ]
@@ -476,7 +476,7 @@ export class ModelSelector {
       'gpt-4o',
       'claude-3',        // All Claude 3 models have vision
       'claude-opus',
-      'claude-sonnet',
+      'claude-opus',
       'gemini'           // All Gemini models have vision
     ];
 
@@ -496,7 +496,7 @@ export class ModelSelector {
           if (modelLower.includes('claude-3-opus') || modelLower.includes('claude-opus-4')) score += 60; // Best OCR accuracy
           if (modelLower.includes('gpt-4o')) score += 55; // Fast and accurate
           if (modelLower.includes('gpt-4-turbo')) score += 50;
-          if (modelLower.includes('claude-3.5-sonnet') || modelLower.includes('claude-sonnet')) score += 45;
+          if (modelLower.includes('claude-opus-4-6-20260206') || modelLower.includes('claude-opus')) score += 45;
           if (modelLower.includes('gemini-pro-1.5')) score += 40;
           if (modelLower.includes('gemini-flash')) score += 30; // Fast but lower quality
 

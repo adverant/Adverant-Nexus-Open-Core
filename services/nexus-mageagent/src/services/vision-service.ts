@@ -3,7 +3,7 @@
  *
  * Handles OCR text extraction using vision-capable models with NO hardcoded models.
  * Dynamic model selection based on preferences and availability:
- * - High accuracy: Claude Opus 4, Claude 3.5 Sonnet
+ * - High accuracy: Claude Opus 4, Claude Opus 4.6
  * - Balanced: GPT-4o, GPT-4 Turbo
  * - Fast: GPT-4o-mini
  *
@@ -148,7 +148,7 @@ export class VisionService {
     // Use high-quality vision models
     const models = [
       { id: 'openai/gpt-4o', name: 'GPT-4o' },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' }
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' }
     ];
 
     let lastError: Error | null = null;
@@ -254,7 +254,7 @@ export class VisionService {
       // High accuracy: Best models first
       return [
         { id: 'anthropic/claude-opus-4', name: 'Claude Opus 4' },
-        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+        { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
         { id: 'openai/gpt-4o', name: 'GPT-4o' },
         { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo' }
       ];
@@ -262,7 +262,7 @@ export class VisionService {
       // Balanced: Fast but reliable models
       return [
         { id: 'openai/gpt-4o', name: 'GPT-4o' },
-        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+        { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
         { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo' },
         { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku' }
       ];
@@ -384,8 +384,8 @@ If the image contains no readable text, return an empty response.`;
 
     if (modelId.includes('opus')) {
       baseConfidence = 0.98; // Opus has highest accuracy
-    } else if (modelId.includes('sonnet')) {
-      baseConfidence = 0.95; // Sonnet is very reliable
+    } else if (modelId.includes('opus')) {
+      baseConfidence = 0.95; // Opus is very reliable
     } else if (modelId.includes('gpt-4o')) {
       baseConfidence = 0.92; // GPT-4o is reliable
     } else if (modelId.includes('gpt-4')) {
@@ -424,10 +424,10 @@ If the image contains no readable text, return an empty response.`;
     // Prepare image for vision model
     const imageUrl = this.prepareImageUrl(req.image, req.format);
 
-    // Use high-accuracy models for layout analysis (GPT-4o or Claude Sonnet)
+    // Use high-accuracy models for layout analysis (GPT-4o or Claude Opus 4.6)
     const models = [
       { id: 'openai/gpt-4o', name: 'GPT-4o' },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' }
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' }
     ];
 
     let lastError: Error | null = null;
@@ -548,10 +548,10 @@ If the image contains no readable text, return an empty response.`;
     // Prepare image for vision model
     const imageUrl = this.prepareImageUrl(req.image, req.format);
 
-    // Use high-accuracy models for table extraction (GPT-4o or Claude Sonnet)
+    // Use high-accuracy models for table extraction (GPT-4o or Claude Opus 4.6)
     const models = [
       { id: 'openai/gpt-4o', name: 'GPT-4o' },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' }
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' }
     ];
 
     let lastError: Error | null = null;

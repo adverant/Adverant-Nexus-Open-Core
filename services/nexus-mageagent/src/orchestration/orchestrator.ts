@@ -353,7 +353,7 @@ export class Orchestrator extends EventEmitter {
       try {
         // Use OpenRouter for simple chat-style response
         const response = await this.dependencies.openRouterClient.createCompletion({
-          model: 'anthropic/claude-3.5-sonnet',
+          model: 'anthropic/claude-opus-4.6',
           messages: [{ role: 'user', content: query }],
           max_tokens: 2000,
           temperature: 0.7
@@ -374,7 +374,7 @@ export class Orchestrator extends EventEmitter {
           confidence: 0.8,
           metadata: {
             taskId,
-            model: 'anthropic/claude-3.5-sonnet',
+            model: 'anthropic/claude-opus-4.6',
             bypass: true,
             reason: 'message_too_short_for_graphrag',
             minLengthRequired: MIN_GRAPHRAG_LENGTH,
@@ -402,7 +402,7 @@ export class Orchestrator extends EventEmitter {
     const taskId = options.taskId || uuidv4();
 
     // Calculate adaptive timeout
-    const selectedModel = options.model || 'anthropic/claude-3.5-sonnet';
+    const selectedModel = options.model || 'anthropic/claude-opus-4.6';
     const estimatedTimeout = adaptiveTimeoutManager.getEstimatedCompletionTime(
       selectedModel,
       complexity
@@ -634,7 +634,7 @@ export class Orchestrator extends EventEmitter {
     const complexity = this.assessTaskComplexity(challenge.challenge);
 
     // Calculate adaptive timeout
-    const selectedModels = challenge.models || ['anthropic/claude-3.5-sonnet'];
+    const selectedModels = challenge.models || ['anthropic/claude-opus-4.6'];
     const primaryModel = selectedModels[0];
     const estimatedTimeout = adaptiveTimeoutManager.getEstimatedCompletionTime(
       primaryModel,

@@ -809,7 +809,7 @@ async function startMageAgentWithWebSocket() {
     try {
       await initializeTelemetryConsumer(openRouterClient);
       logger.info('TelemetryConsumer started with LLM-powered decision engine', {
-        primaryModel: 'anthropic/claude-sonnet-4-5-20250514',
+        primaryModel: 'anthropic/claude-opus-4.6',
         fallbackModel: 'google/gemini-2.0-flash-001',
         mode: 'intelligent-orchestration'
       });
@@ -937,7 +937,7 @@ async function startMageAgentWithWebSocket() {
       graphRAGClient,
       redisClient,
       {
-        evaluationModel: 'anthropic/claude-sonnet-4-20250514',
+        evaluationModel: 'anthropic/claude-opus-4.6',
         defaultMaxAttempts: 5,
         goalTTL: 86400, // 24 hours
       }
@@ -947,7 +947,7 @@ async function startMageAgentWithWebSocket() {
       openRouterClient,
       graphRAGClient,
       {
-        reflectionModel: 'anthropic/claude-sonnet-4-20250514',
+        reflectionModel: 'anthropic/claude-opus-4.6',
         maxConsecutiveFailures: 3,
         confidenceThreshold: 0.5,
         deviationThreshold: 2,
@@ -959,7 +959,7 @@ async function startMageAgentWithWebSocket() {
       graphRAGClient,
       redisClient,
       {
-        learningModel: 'anthropic/claude-sonnet-4-20250514',
+        learningModel: 'anthropic/claude-opus-4.6',
         minSimilarityThreshold: 0.6,
         maxPatternsToReturn: 5,
         patternTTL: 604800, // 7 days
@@ -968,7 +968,7 @@ async function startMageAgentWithWebSocket() {
 
     const taskDecomposer = new TaskDecompositionAgent(
       'task-decomposer',
-      'anthropic/claude-sonnet-4-20250514',
+      'anthropic/claude-opus-4.6',
       {
         openRouterClient,
         databaseManager,
@@ -1130,7 +1130,7 @@ async function startMageAgentWithWebSocket() {
         'air_quality_prediction',
         'ANY_GEOSPATIAL_OPERATION'
       ],
-      backend: 'OpenRouter LLMs (Claude Opus 4, Claude 3.7 Sonnet, GPT-4o)',
+      backend: 'OpenRouter LLMs (Claude Opus 4, Claude Opus 4.6, GPT-4o)',
       streaming: 'WebSocket support for real-time prediction updates',
       notes: [
         'Zero hardcoded operations - service adapts to ANY geospatial prediction request',
@@ -1181,7 +1181,7 @@ async function startMageAgentWithWebSocket() {
         'Automatic retry with exponential backoff'
       ],
       integration: 'VPS Admin Dashboard AI troubleshooting assistant',
-      model: 'Claude Sonnet 4.5 (default) + 100+ OpenRouter models'
+      model: 'Claude Opus 4.6 (default) + 100+ OpenRouter models'
     });
 
     // Root endpoint - simplified

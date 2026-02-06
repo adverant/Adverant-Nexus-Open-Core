@@ -1634,7 +1634,7 @@ internalRouter.post('/vision/analyze-layout',
         {
           endpoint: 'internal',
           estimatedDuration: '15-45 seconds',
-          modelSelection: 'GPT-4o Vision or Claude 3.5 Sonnet',
+          modelSelection: 'GPT-4o Vision or Claude Opus 4.6',
           targetAccuracy: '99.2%',
           elementTypes: 11,
           jobId,
@@ -1759,7 +1759,7 @@ internalRouter.post('/vision/extract-table',
         {
           endpoint: 'internal',
           estimatedDuration: '15-45 seconds',
-          modelSelection: 'GPT-4o Vision or Claude 3.5 Sonnet',
+          modelSelection: 'GPT-4o Vision or Claude Opus 4.6',
           targetAccuracy: '97.9%',
           jobId,
           websocket: {
@@ -2187,7 +2187,7 @@ router.post('/vision/analyze',
         'Vision analysis task created successfully. Use WebSocket or poll task endpoint for results.',
         {
           estimatedDuration: '5-30 seconds',
-          modelSelection: 'GPT-4o Vision or Claude 3.5 Sonnet'
+          modelSelection: 'GPT-4o Vision or Claude Opus 4.6'
         }
       );
     }
@@ -2611,7 +2611,7 @@ router.post('/models/select',
     }
 
     // Simple model selection logic
-    let selectedModel = 'anthropic/claude-3.5-sonnet';
+    let selectedModel = 'anthropic/claude-opus-4.6';
     let estimatedCost = 0.003;
     let reasoning = 'Default balanced model';
 
@@ -2620,7 +2620,7 @@ router.post('/models/select',
       estimatedCost = 0.015;
       reasoning = 'High complexity task requires most capable model';
     } else if (complexity >= 0.5) {
-      selectedModel = 'anthropic/claude-3.5-sonnet';
+      selectedModel = 'anthropic/claude-opus-4.6';
       estimatedCost = 0.003;
       reasoning = 'Medium complexity, balanced performance/cost';
     } else if (complexity < 0.3) {
@@ -2634,8 +2634,8 @@ router.post('/models/select',
       selectedModel = 'anthropic/claude-opus-4';
       reasoning = 'Code tasks benefit from highest reasoning capability';
     } else if (taskType === 'creative_writing') {
-      selectedModel = 'anthropic/claude-3.5-sonnet';
-      reasoning = 'Sonnet excels at creative tasks';
+      selectedModel = 'anthropic/claude-opus-4.6';
+      reasoning = 'Opus excels at creative tasks';
     }
 
     // Budget constraint

@@ -276,7 +276,7 @@ Voyage AI embeddings client for semantic search.
 | Provider | Models | SDK | Notes |
 |----------|--------|-----|-------|
 | **OpenAI** | GPT-4, GPT-3.5 Turbo | openai | Vision, function calling |
-| **Anthropic** | Claude 3.5 Sonnet, Opus, Haiku | @anthropic-ai/sdk | 200K context, tool use |
+| **Anthropic** | Claude Opus 4.6, Opus, Haiku | @anthropic-ai/sdk | 200K context, tool use |
 | **Google** | Gemini Pro, Ultra | @google/generative-ai | Multimodal |
 | **Cohere** | Command, Embed | cohere-ai | Embeddings, rerank |
 | **OpenRouter** | 320+ models | openai-compatible | Unified API |

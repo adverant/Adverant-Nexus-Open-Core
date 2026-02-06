@@ -76,7 +76,7 @@ export class UniversalTaskExecutor {
   private tenantContext?: TenantContext;
 
   // Default model for task decomposition and code generation
-  private readonly defaultModel = 'anthropic/claude-sonnet-4';
+  private readonly defaultModel = 'anthropic/claude-opus-4.6';
 
   constructor(dependencies?: UniversalTaskExecutorDependencies) {
     this.fileProcessApiUrl = process.env.FILEPROCESS_API_URL || 'http://nexus-fileprocess-api:9099';

@@ -29,7 +29,7 @@ FileProcessAgent is a high-performance, horizontally-scalable document processin
 **Features**:
 - Sync and async modes via TaskManager
 - Real-time progress tracking via WebSocket
-- Automatic fallback chain: GPT-4o → Claude 3.5 Sonnet
+- Automatic fallback chain: GPT-4o → Claude Opus 4.6
 - Rate-limit exempt internal endpoint
 
 See [FILEPROCESSAGENT_PHASE_2_2_PROGRESS.md](../../FILEPROCESSAGENT_PHASE_2_2_PROGRESS.md) for full details.

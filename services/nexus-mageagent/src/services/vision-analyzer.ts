@@ -223,7 +223,7 @@ export class VisionAnalyzer {
   private hashCache: Map<string, string> = new Map();
 
   /** Primary vision model */
-  private readonly PRIMARY_MODEL = 'anthropic/claude-sonnet-4-20250514';
+  private readonly PRIMARY_MODEL = 'anthropic/claude-opus-4.6';
 
   /** Fallback vision model (cost-effective) */
   private readonly FALLBACK_MODEL = 'openai/gpt-4o-mini';

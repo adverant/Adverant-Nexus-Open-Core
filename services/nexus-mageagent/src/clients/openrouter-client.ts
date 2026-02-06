@@ -508,7 +508,7 @@ export class OpenRouterClient {
   /**
    * Create a vision request with image and text prompt
    *
-   * @param model - Vision-capable model (e.g., gpt-4-vision, claude-3.5-sonnet)
+   * @param model - Vision-capable model (e.g., gpt-4-vision, claude-opus-4-6-20260206)
    * @param systemPrompt - System instructions for the model
    * @param imageUrl - Image URL (data URL or HTTP URL)
    * @param userPrompt - User's text prompt about the image

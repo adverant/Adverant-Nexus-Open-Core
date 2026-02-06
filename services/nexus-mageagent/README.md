@@ -647,7 +647,7 @@ Execute geospatial predictions dynamically.
     },
     "confidence": 0.87,
     "reasoning": "Based on NDVI of 0.45...",
-    "modelUsed": "Claude 3.5 Sonnet",
+    "modelUsed": "Claude Opus 4.6",
     "processingTime": 3200,
     "metadata": {
       "operation": "land_use_classification",
@@ -695,7 +695,7 @@ List all 8 available prediction operations with examples and documentation.
   },
   "models": {
     "highAccuracy": ["Claude Opus 4", "Claude 3.7 Sonnet", "GPT-4o"],
-    "balanced": ["Claude 3.5 Sonnet", "GPT-4o", "Gemini 2.0 Flash"],
+    "balanced": ["Claude Opus 4.6", "GPT-4o", "Gemini 2.0 Flash"],
     "fast": ["GPT-4o Mini", "Gemini 2.0 Flash"]
   }
 }
@@ -715,7 +715,7 @@ Check prediction job status and retrieve results.
     "prediction": {...},
     "confidence": 0.87,
     "reasoning": "...",
-    "modelUsed": "Claude 3.5 Sonnet",
+    "modelUsed": "Claude Opus 4.6",
     "processingTime": 3200
   },
   "createdAt": "2025-11-04T17:00:00Z",

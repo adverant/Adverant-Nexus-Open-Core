@@ -182,13 +182,13 @@ export class GeospatialPredictionService {
     // High-accuracy models for complex spatial reasoning
     const accuracyModels = [
       { id: 'anthropic/claude-opus-4-20250514', name: 'Claude Opus 4' },
-      { id: 'anthropic/claude-3.7-sonnet:beta', name: 'Claude 3.7 Sonnet' },
+      { id: 'anthropic/claude-opus-4-6-20260206:beta', name: 'Claude Opus 4.6' },
       { id: 'openai/gpt-4o', name: 'GPT-4o' }
     ];
 
     // Balanced models for standard predictions (default)
     const balancedModels = [
-      { id: 'anthropic/claude-3.5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+      { id: 'anthropic/claude-opus-4.6-20241022', name: 'Claude Opus 4.6' },
       { id: 'openai/gpt-4o', name: 'GPT-4o' },
       { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash' }
     ];

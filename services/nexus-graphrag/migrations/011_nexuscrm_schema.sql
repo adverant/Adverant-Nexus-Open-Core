@@ -351,7 +351,7 @@ CREATE TABLE IF NOT EXISTS nexuscrm.voice_calls (
     assistant_config JSONB, -- Vapi assistant configuration used
     stt_provider VARCHAR(50), -- 'deepgram', 'whisper', etc.
     tts_provider VARCHAR(50), -- 'elevenlabs', 'cartesia', etc.
-    llm_model VARCHAR(100), -- 'gpt-4-turbo', 'claude-3-sonnet', etc.
+    llm_model VARCHAR(100), -- 'gpt-4-turbo', 'claude-opus-4-6-20260206', etc.
 
     -- Recording and transcript
     recording_url VARCHAR(1000),

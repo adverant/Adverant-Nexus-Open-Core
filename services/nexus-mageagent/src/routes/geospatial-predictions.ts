@@ -322,12 +322,12 @@ router.get('/', (_req: Request, res: Response) => {
     models: {
       highAccuracy: {
         enabled: 'When options.preferAccuracy = true',
-        models: ['Claude Opus 4', 'Claude 3.7 Sonnet', 'GPT-4o'],
+        models: ['Claude Opus 4', 'Claude Opus 4.6', 'GPT-4o'],
         useCase: 'Complex spatial reasoning, high-stakes decisions'
       },
       balanced: {
         enabled: 'Default (options.preferAccuracy = false)',
-        models: ['Claude 3.5 Sonnet', 'GPT-4o', 'Gemini 2.0 Flash'],
+        models: ['Claude Opus 4.6', 'GPT-4o', 'Gemini 2.0 Flash'],
         useCase: 'Standard predictions, good balance of speed and accuracy'
       }
     },

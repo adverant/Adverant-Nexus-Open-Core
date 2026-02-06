@@ -157,7 +157,7 @@ curl -X POST http://localhost:9000/api/orchestrate \
   "confidence": 0.8,
   "metadata": {
     "taskId": "uuid",
-    "model": "anthropic/claude-3.5-sonnet",
+    "model": "anthropic/claude-opus-4.6",
     "bypass": true,
     "reason": "message_too_short_for_graphrag",
     "minLengthRequired": 10,

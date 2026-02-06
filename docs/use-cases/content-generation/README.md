@@ -188,7 +188,7 @@ async generateContent(input: {
     ${sources.map(s => s.content).join('\n\n')}
 
     Brand voice: ${this.brandVoice}`,
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-opus-4-6-20260206',
   });
 
   // 3. Optimize for SEO (if applicable)

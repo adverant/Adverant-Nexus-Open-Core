@@ -148,7 +148,7 @@ POST /api/interactions/capture
   "platform": "claude-code",  // or "gemini", "chatgpt", "mageagent"
   "userMessage": "Continue my novel...",
   "assistantResponse": "Chapter continues...",
-  "modelUsed": "claude-sonnet-4-5",
+  "modelUsed": "claude-opus-4-6-20260206",
   "tokensTotal": 8500,
   "entityIds": ["chapter-3-entity-id"]
 }

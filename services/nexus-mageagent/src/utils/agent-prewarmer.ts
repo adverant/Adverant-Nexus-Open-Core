@@ -98,7 +98,7 @@ export class AgentPrewarmer {
     // TODO: Query agent_performance_metrics table for most-used models
     // For now, return sensible defaults
     return [
-      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-opus-4.6',
       'anthropic/claude-3-haiku',
       'openai/gpt-4o',
       'openai/gpt-4o-mini',

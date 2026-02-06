@@ -71,34 +71,34 @@ export class OpenRouterModelSelector {
   // Quality-ranked model patterns (used for scoring, not hardcoding)
   private readonly modelQualityPatterns = {
     classification: [
-      { pattern: /claude-3\.5-sonnet/i, score: 100, reason: 'Best reasoning and classification accuracy' },
+      { pattern: /claude-opus-4\.6/i, score: 100, reason: 'Best reasoning and classification accuracy' },
       { pattern: /claude-3-opus/i, score: 95, reason: 'Excellent classification with deep analysis' },
       { pattern: /gpt-4o/i, score: 90, reason: 'Strong general classification' },
       { pattern: /gemini-2\.0-flash-thinking/i, score: 88, reason: 'Fast with reasoning capabilities' },
-      { pattern: /claude-3-sonnet/i, score: 85, reason: 'Good balance of speed and accuracy' },
+      { pattern: /claude-opus-4-6-20260206/i, score: 85, reason: 'Good balance of speed and accuracy' },
       { pattern: /deepseek-chat/i, score: 80, reason: 'Cost-effective with good reasoning' },
-      { pattern: /claude-sonnet-4-5/i, score: 98, reason: 'Latest Claude Sonnet 4.5 - excellent quality' },
+      { pattern: /claude-opus-4-6-20260206/i, score: 98, reason: 'Latest Claude Opus 4.6 - excellent quality' },
     ],
     vision: [
-      { pattern: /claude-3\.5-sonnet/i, score: 100, reason: 'Best vision understanding' },
+      { pattern: /claude-opus-4\.6/i, score: 100, reason: 'Best vision understanding' },
       { pattern: /gpt-4o/i, score: 95, reason: 'Excellent vision capabilities' },
       { pattern: /claude-3-opus/i, score: 90, reason: 'Strong vision analysis' },
       { pattern: /gemini-.*-vision/i, score: 85, reason: 'Native vision support' },
     ],
     code: [
       { pattern: /deepseek-coder/i, score: 100, reason: 'Specialized for code understanding' },
-      { pattern: /claude-3\.5-sonnet/i, score: 95, reason: 'Excellent code analysis' },
+      { pattern: /claude-opus-4\.6/i, score: 95, reason: 'Excellent code analysis' },
       { pattern: /gpt-4o/i, score: 90, reason: 'Strong code understanding' },
       { pattern: /codestral/i, score: 85, reason: 'Code-specialized model' },
     ],
     fast: [
-      { pattern: /claude-sonnet-4-5/i, score: 100, reason: 'Claude Sonnet 4.5 - fast and high quality' },
+      { pattern: /claude-opus-4-6-20260206/i, score: 100, reason: 'Claude Opus 4.6 - fast and high quality' },
       { pattern: /gemini-.*-flash/i, score: 95, reason: 'Fast Gemini variant' },
       { pattern: /gpt-4o-mini/i, score: 90, reason: 'Fast GPT-4 variant' },
       { pattern: /llama-3\.1-8b/i, score: 85, reason: 'Lightweight and fast' },
     ],
     general: [
-      { pattern: /claude-3\.5-sonnet/i, score: 100, reason: 'Best general-purpose model' },
+      { pattern: /claude-opus-4\.6/i, score: 100, reason: 'Best general-purpose model' },
       { pattern: /gpt-4o/i, score: 95, reason: 'Strong general capabilities' },
       { pattern: /claude-3-opus/i, score: 90, reason: 'Deep analysis capabilities' },
       { pattern: /gemini-2\.0/i, score: 85, reason: 'Latest Gemini with strong performance' },

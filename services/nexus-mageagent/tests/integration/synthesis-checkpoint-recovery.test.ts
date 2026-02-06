@@ -173,7 +173,7 @@ describe('Synthesis Checkpoint Recovery - Integration Tests', () => {
         taskId,
         synthesisResult,
         {
-          model: 'claude-sonnet-4-5',
+          model: 'claude-opus-4-6-20260206',
           inputSize: 500,
           outputSize: synthesisResult.length
         }
@@ -186,7 +186,7 @@ describe('Synthesis Checkpoint Recovery - Integration Tests', () => {
       expect(recovered!.taskId).toBe(taskId);
       expect(recovered!.synthesisResult).toBe(synthesisResult);
       expect(recovered!.status).toBe('pending');
-      expect(recovered!.metadata.model).toBe('claude-sonnet-4-5');
+      expect(recovered!.metadata.model).toBe('claude-opus-4-6-20260206');
 
       logger.info('✅ Checkpoint recovered successfully', { taskId });
     }, 10000);
@@ -570,7 +570,7 @@ describe('Synthesis Checkpoint Recovery - Integration Tests', () => {
         taskId,
         largeResult,
         {
-          model: 'claude-sonnet-4-5',
+          model: 'claude-opus-4-6-20260206',
           inputSize: 100000,
           outputSize: largeResult.length,
           agentCount: 10,

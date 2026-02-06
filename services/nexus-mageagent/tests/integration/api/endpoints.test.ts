@@ -122,7 +122,7 @@ describe('MageAgent API Integration Tests', () => {
         options: {
           maxTokens: 500,
           temperature: 0.7,
-          models: ['openai/gpt-4-turbo', 'anthropic/claude-3-opus']
+          models: ['openai/gpt-4-turbo', 'anthropic/claude-opus-4.6']
         }
       };
 
@@ -203,7 +203,7 @@ describe('MageAgent API Integration Tests', () => {
         competitorCount: 3,
         models: [
           'openai/gpt-4-turbo',
-          'anthropic/claude-3-sonnet',
+          'anthropic/claude-opus-4.6',
           'meta-llama/llama-3-70b-instruct'
         ]
       };
@@ -426,7 +426,7 @@ describe('MageAgent API Integration Tests', () => {
     it('should validate real OpenRouter models', async () => {
       const validModels = [
         'openai/gpt-4-turbo',
-        'anthropic/claude-3-opus',
+        'anthropic/claude-opus-4.6',
         'meta-llama/llama-3-70b-instruct'
       ];
 

@@ -103,7 +103,7 @@ describe('WorkflowRouterService', () => {
     it('should use custom model when specified', () => {
       const config: WorkflowRouterConfig = {
         openRouterClient: mockOpenRouterClient as any,
-        defaultModel: 'anthropic/claude-3-opus',
+        defaultModel: 'anthropic/claude-opus-4.6',
       };
       const svc = new WorkflowRouterService(config);
       expect(svc).toBeDefined();

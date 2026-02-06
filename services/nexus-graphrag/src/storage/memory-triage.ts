@@ -123,7 +123,7 @@ export class MemoryTriage {
   private async llmTriage(content: string): Promise<TriageDecision> {
     try {
       const response = await this.openRouterClient!.post('/chat/completions', {
-        model: 'anthropic/claude-sonnet-4.5',
+        model: 'anthropic/claude-opus-4.6',
         max_tokens: 200,
         temperature: 0.1,
         messages: [{

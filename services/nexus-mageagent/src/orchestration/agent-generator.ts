@@ -38,7 +38,7 @@ export interface AgentGenerationResult {
  * Inspired by DocMage's institutional profiles + Manus.ai's adaptive architecture
  */
 export class AgentGenerator {
-  private readonly META_ANALYZER_MODEL = 'anthropic/claude-3.5-sonnet';
+  private readonly META_ANALYZER_MODEL = 'anthropic/claude-opus-4.6';
 
   constructor(
     private openRouterClient: OpenRouterClient,
@@ -409,11 +409,11 @@ Generate agent profiles now (JSON array only):`;
    */
   private getFallbackModel(role: AgentRole): string {
     const fallbacks: Record<AgentRole, string> = {
-      [AgentRole.RESEARCH]: 'anthropic/claude-3.5-sonnet',
+      [AgentRole.RESEARCH]: 'anthropic/claude-opus-4.6',
       [AgentRole.CODING]: 'openai/gpt-4-turbo',
-      [AgentRole.REVIEW]: 'anthropic/claude-3.5-sonnet',
-      [AgentRole.SYNTHESIS]: 'anthropic/claude-3.5-sonnet',
-      [AgentRole.SPECIALIST]: 'anthropic/claude-3.5-sonnet'
+      [AgentRole.REVIEW]: 'anthropic/claude-opus-4.6',
+      [AgentRole.SYNTHESIS]: 'anthropic/claude-opus-4.6',
+      [AgentRole.SPECIALIST]: 'anthropic/claude-opus-4.6'
     };
 
     return fallbacks[role];
@@ -536,7 +536,7 @@ Generate agent profiles now (JSON array only):`;
         specialization: 'general analysis',
         focus: 'comprehensive task analysis',
         capabilities: ['analysis', 'research'],
-        modelId: 'anthropic/claude-3.5-sonnet',
+        modelId: 'anthropic/claude-opus-4.6',
         priority: 10,
         reasoningDepth: request.complexity === 'extreme' ? 'extreme' : 'deep'
       }

@@ -238,7 +238,7 @@ Domain:`;
     try {
       const response = await this.complete({
         prompt,
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-opus-4.6',
         maxTokens: 20,
         temperature: 0.1
       });
@@ -298,7 +298,7 @@ JSON:`;
     try {
       const response = await this.complete({
         prompt,
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-opus-4.6',
         maxTokens: 1500,
         temperature: 0.2
       });
@@ -412,7 +412,7 @@ JSON:`;
     try {
       const response = await this.complete({
         prompt,
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-opus-4.6',
         maxTokens: 2000,
         temperature: 0.3
       });
@@ -486,7 +486,7 @@ JSON:`;
     try {
       const response = await this.complete({
         prompt,
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-opus-4.6',
         maxTokens: 1000,
         temperature: 0.3
       });

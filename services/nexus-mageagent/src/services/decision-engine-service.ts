@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - Reuses existing OpenRouterClient from MageAgent (no new dependencies)
- * - Uses Claude 4.5 (claude-sonnet-4-5) for complex reasoning with extended thinking
+ * - Uses Claude 4.5 (claude-opus-4-6-20260206) for complex reasoning with extended thinking
  * - Falls back to Gemini 2.0 Flash for cost optimization on simpler decisions
  * - LRU cache prevents redundant LLM calls for similar events
  * - Structured JSON output for reliable parsing
@@ -86,7 +86,7 @@ interface CachedDecision {
  * Decision Engine configuration
  */
 interface DecisionEngineConfig {
-  /** Primary model for complex reasoning (default: claude-sonnet-4-5) */
+  /** Primary model for complex reasoning (default: claude-opus-4-6-20260206) */
   primaryModel: string;
   /** Fallback model for cost optimization (default: gemini-2.0-flash) */
   fallbackModel: string;
@@ -126,8 +126,8 @@ export class DecisionEngine {
 
   constructor(config?: Partial<DecisionEngineConfig>) {
     this.config = {
-      // Claude 4.5 Sonnet with extended thinking for complex security reasoning
-      primaryModel: config?.primaryModel || 'anthropic/claude-sonnet-4-5-20250514',
+      // Claude Opus 4.6 with extended thinking for complex security reasoning
+      primaryModel: config?.primaryModel || 'anthropic/claude-opus-4.6',
       // Gemini 2.0 Flash for fast, cost-effective decisions
       fallbackModel: config?.fallbackModel || 'google/gemini-2.0-flash-001',
       cacheTtlMs: config?.cacheTtlMs || 5 * 60 * 1000, // 5 minutes

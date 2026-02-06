@@ -257,7 +257,7 @@ export class EntityResolutionError extends GraphitiError {
 
 /**
  * LLM-based entity type classification cache
- * Stores results from Claude Sonnet 4.5 to avoid repeated API calls
+ * Stores results from Claude Opus 4.6 to avoid repeated API calls
  * Key: lowercased entity name, Value: { type, confidence }
  */
 const LLM_ENTITY_TYPE_CACHE = new Map<string, { type: string; confidence: number }>();
@@ -3182,7 +3182,7 @@ If no entities found, return: {"entities": []}`;
 
   /**
    * Classify entity type using semantic classification (Voyage AI reranking)
-   * Falls back to LLM classification (Claude Sonnet 4.5) if semantic classification is disabled or fails
+   * Falls back to LLM classification (Claude Opus 4.6) if semantic classification is disabled or fails
    *
    * This method uses Voyage AI's rerank-2.5 model for accurate entity classification.
    * Reranking is more accurate than embedding similarity because it uses a cross-encoder
@@ -3235,7 +3235,7 @@ If no entities found, return: {"entities": []}`;
       }
     }
 
-    // Use LLM classification (Claude Sonnet 4.5) as primary/fallback
+    // Use LLM classification (Claude Opus 4.6) as primary/fallback
     // This replaces hardcoded entity lists with dynamic LLM-based classification
     return await this.classifyEntityTypeLLM(name, context);
   }
@@ -3317,7 +3317,7 @@ If no entities found, return: {"entities": []}`;
   }
 
   /**
-   * LLM-based entity type classification using Claude Sonnet 4.5
+   * LLM-based entity type classification using Claude Opus 4.6
    * This is the authoritative classifier - hardcoded lists are just cache optimization
    *
    * @param entityName - The entity name to classify

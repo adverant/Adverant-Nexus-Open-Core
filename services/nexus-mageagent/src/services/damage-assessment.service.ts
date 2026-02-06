@@ -5,7 +5,7 @@
  * property damage detection and cost estimation.
  *
  * Architecture:
- * - Uses 3-5 vision models concurrently (GPT-4V, Claude 3.5 Sonnet, Gemini 1.5 Pro)
+ * - Uses 3-5 vision models concurrently (GPT-4V, Claude Opus 4.6, Gemini 1.5 Pro)
  * - Structured prompts for damage detection
  * - Consensus engine to merge results
  * - Confidence scoring based on model agreement
@@ -127,7 +127,7 @@ export class DamageAssessmentService {
     // Vision models for damage assessment (in order of preference)
     this.visionModels = [
       { id: 'openai/gpt-4-vision-preview', name: 'GPT-4 Vision' },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+      { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
       { id: 'google/gemini-pro-vision', name: 'Gemini Pro Vision' }
     ];
 

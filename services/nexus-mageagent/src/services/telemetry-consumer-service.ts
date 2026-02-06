@@ -96,7 +96,7 @@ export class TelemetryConsumerService {
     if (this.config.openRouterClient) {
       this.decisionEngine.setOpenRouterClient(this.config.openRouterClient);
       logger.info('LLM-powered decision engine enabled', {
-        primaryModel: 'anthropic/claude-sonnet-4-5-20250514',
+        primaryModel: 'anthropic/claude-opus-4.6',
         fallbackModel: 'google/gemini-2.0-flash-001'
       });
     } else {
