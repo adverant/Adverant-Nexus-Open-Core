@@ -46,7 +46,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.48.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.52.1",
     "@opentelemetry/resources": "^1.25.1",
-    "@opentelemetry/sdk-node": "^0.52.1",
+    "@opentelemetry/sdk-node": "^0.211.0",
     "@opentelemetry/sdk-trace-base": "^1.25.1",
     "@opentelemetry/semantic-conventions": "^1.25.1",
     "@qdrant/js-client-rest": "^1.9.0",
