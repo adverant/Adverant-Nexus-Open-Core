@@ -75,7 +75,7 @@
     "chokidar": "^3.6.0",
     "cli-cursor": "^4.0.0",
     "cli-table3": "^0.6.3",
-    "commander": "^12.0.0",
+    "commander": "^14.0.3",
     "conf": "^12.0.0",
     "configstore": "^7.0.0",
     "cosmiconfig": "^9.0.0",
