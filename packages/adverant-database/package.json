@@ -27,7 +27,7 @@
     "@qdrant/js-client-rest": "^1.9.0",
     "ioredis": "^5.3.2",
     "neo4j-driver": "^5.19.0",
-    "pg": "^8.11.5"
+    "pg": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
