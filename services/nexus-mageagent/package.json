@@ -56,7 +56,7 @@
     "axios-retry": "^4.1.0",
     "bcryptjs": "^3.0.2",
     "bull": "^4.12.2",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "epub2": "^3.0.2",
     "express": "^4.19.2",
     "express-rate-limit": "^7.5.1",
