@@ -37,7 +37,7 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
+    "@types/node": "^25.3.0",
     "@types/pdf-parse": "^1.1.4",
     "typescript": "^5.3.3"
   },
