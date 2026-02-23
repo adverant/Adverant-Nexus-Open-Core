@@ -94,7 +94,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.56.0",
-    "chalk": "^4.1.2",
+    "chalk": "^5.6.2",
     "cli-table3": "^0.6.3",
     "eslint": "^10.0.0",
     "form-data": "^4.0.4",
